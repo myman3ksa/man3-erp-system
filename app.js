@@ -3,7 +3,7 @@
 // ============================================================
 const { createClient } = supabase;
 const SUPABASE_URL  = 'https://lxqyxyfkemmdnvzxckmb.supabase.co';
-const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4cXl4eWZrZW1tZG52zxckmbIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzMzg4MTQsImV4cCI6MjA4OTkxNDgxNH0.Qm5KxtWJE5QmaaZWrz1MeYyHkKl7c3i4722TdpjIhHw';
+const SUPABASE_KEY  = 'sb_publishable_96EDMv58jjL-ikz4ew86Pw_uycMTKq7';
 const ANTHROPIC_KEY = 'YOUR_ANTHROPIC_API_KEY';
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
