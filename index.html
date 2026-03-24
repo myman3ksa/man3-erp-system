@@ -1,0 +1,1820 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAN-3 Plus | Restaurant ERP</title>
+    <meta name="description"
+        content="A comprehensive Restaurant ERP System with modules for purchasing, inventory, production, and more.">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Boxicons for modern icons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <!-- Chart.js for Dashboard -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="dark-theme auth-active">
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="user-info">
+            <div class="user-details" style="padding-left: 10px;">
+                <h4 data-lang="admin_user">Admin User</h4>
+                <p data-lang="super_admin">Super Admin</p>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li class="active" data-target="dashboard-section"><i class='bx bx-grid-alt'></i><span>Dashboard</span></li>
+            <li data-target="purchasing-section"><i class='bx bx-cart-alt'></i><span>Purchasing</span></li>
+            <li data-target="inventory-section"><i class='bx bx-package'></i><span>Inventory</span></li>
+            <li data-target="production-section"><i class='bx bx-dish'></i><span>Production</span></li>
+            <li data-target="costing-section"><i class='bx bx-line-chart'></i><span>Costing</span></li>
+            <li data-target="admin-section"><i class='bx bx-buildings'></i><span data-lang="menu_branches">Branches</span></li>
+            <li data-target="suppliers-section"><i class='bx bx-store'></i><span>Suppliers</span></li>
+            <li data-target="finance-section"><i class='bx bx-money'></i><span data-lang="menu_finance">Finance</span></li>
+            <li data-target="users-section"><i class='bx bx-user'></i><span data-lang="menu_users">Users</span></li>
+            <li data-target="wastage-section"><i class='bx bx-trash'></i><span data-lang="menu_wastage">Wastage</span></li>
+            <li data-target="settings-section"><i class='bx bx-cog'></i><span data-lang="menu_settings">Settings</span></li>
+            <li data-target="ai-assistant-section"><i class='bx bx-bot'></i><span>AI Assistant</span></li>
+        </ul>
+        <div class="bottom-menu">
+            <ul>
+                <li><i class='bx bx-log-out'></i><span>Logout</span></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+            <button class="hamburger-btn" id="hamburger-btn"><i class='bx bx-menu'></i></button>
+            <div class="search-bar">
+                <i class='bx bx-search'></i>
+                <input type="text" placeholder="Search across modules...">
+            </div>
+            <div class="header-actions">
+                <button class="secondary-btn" id="lang-toggle"><i class='bx bx-globe'></i> <span id="lang-text">عربي</span></button>
+                <div class="branch-selector">
+                    <select id="global-branch-select">
+                        <option value="all">All Branches</option>
+                        <option value="main">Main Branch (Riyadh)</option>
+                        <option value="jeddah">Jeddah Branch</option>
+                    </select>
+                </div>
+                <div class="notifications">
+                    <i class='bx bx-bell'></i>
+                    <span class="badge">3</span>
+                </div>
+                <button class="export-btn" id="global-export"><i class='bx bx-export'></i> Export</button>
+            </div>
+        </header>
+
+        <!-- Pages Content -->
+        <div class="pages-container">
+
+            <!-- 1. Dashboard Section -->
+            <section id="dashboard-section" class="page-section active">
+                <div class="dashboard-banner">
+                    <div class="banner-content">
+                        <h1>Welcome, <span id="display-user-name">User</span></h1>
+                        <p id="dash-date-label">Live operational overview</p>
+                    </div>
+                    <div class="banner-actions">
+                        <button class="export-btn-mini" onclick="exportData('pdf')"><i class='bx bx-file-pdf'></i> PDF</button>
+                        <button class="export-btn-mini" onclick="exportData('xls')"><i class='bx bx-spreadsheet'></i> XLS</button>
+                    </div>
+                </div>
+
+                <!-- Top 3 mini KPI sparkline cards -->
+                <div class="mini-kpi-grid">
+                    <div class="kpi-mini-card">
+                        <div class="card-header"><span>Purchase Orders</span><a href="#purchasing-section" class="view-report" onclick="navigateTo('purchasing-section')">View All →</a></div>
+                        <div class="card-body"><h2 id="kpi-po-count">—</h2><div class="mini-chart-container"><canvas id="miniChartPO"></canvas></div></div>
+                    </div>
+                    <div class="kpi-mini-card">
+                        <div class="card-header"><span>Total Spend (Month)</span><a href="#purchasing-section" class="view-report" onclick="navigateTo('purchasing-section')">View All →</a></div>
+                        <div class="card-body"><h2><span id="kpi-branch-orders">—</span></h2><div class="mini-chart-container"><canvas id="miniChartBranchOrders"></canvas></div></div>
+                    </div>
+                    <div class="kpi-mini-card">
+                        <div class="card-header"><span>Portions Produced</span><a href="#production-section" class="view-report" onclick="navigateTo('production-section')">View All →</a></div>
+                        <div class="card-body"><h2><span id="kpi-total-orders">—</span></h2><div class="mini-chart-container"><canvas id="miniChartTotalOrders"></canvas></div></div>
+                    </div>
+                </div>
+
+                <!-- 12-card Full KPI Breakdown Grid -->
+                <div class="dash-kpi-section">
+                    <h3 class="dash-section-title"><i class='bx bx-bar-chart-alt-2'></i> Live Operations Breakdown</h3>
+                    <div class="dash-kpi-grid">
+                        <div class="dash-kpi-card" id="dash-kpi-1"><div class="dk-loading">Loading...</div></div>
+                        <div class="dash-kpi-card" id="dash-kpi-2"><div class="dk-loading">Loading...</div></div>
+                        <div class="dash-kpi-card" id="dash-kpi-3"><div class="dk-loading">Loading...</div></div>
+                        <div class="dash-kpi-card" id="dash-kpi-4"><div class="dk-loading">Loading...</div></div>
+                        <div class="dash-kpi-card" id="dash-kpi-5"><div class="dk-loading">Loading...</div></div>
+                        <div class="dash-kpi-card" id="dash-kpi-6"><div class="dk-loading">Loading...</div></div>
+                        <div class="dash-kpi-card" id="dash-kpi-7"><div class="dk-loading">Loading...</div></div>
+                        <div class="dash-kpi-card" id="dash-kpi-8"><div class="dk-loading">Loading...</div></div>
+                        <div class="dash-kpi-card" id="dash-kpi-9"><div class="dk-loading">Loading...</div></div>
+                        <div class="dash-kpi-card" id="dash-kpi-10"><div class="dk-loading">Loading...</div></div>
+                        <div class="dash-kpi-card" id="dash-kpi-11"><div class="dk-loading">Loading...</div></div>
+                        <div class="dash-kpi-card" id="dash-kpi-12"><div class="dk-loading">Loading...</div></div>
+                    </div>
+                </div>
+
+                <!-- Charts row -->
+                <div class="charts-row">
+                    <div class="large-chart-card custom-panel">
+                        <div class="card-header"><span>Daily PO Spend — Last 7 Days (SAR)</span><a href="#" class="view-report">Live Data</a></div>
+                        <div class="chart-wrapper"><canvas id="dailyUsageChart"></canvas></div>
+                    </div>
+                    <div class="hourly-sales-card custom-panel">
+                        <div class="card-header"><span>POs by Hour of Day</span></div>
+                        <div class="chart-wrapper"><canvas id="hourlyPOChart"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="pie-charts-grid">
+                    <div class="pie-card custom-panel">
+                        <div class="card-header"><span>Top Produced Items</span><a href="#production-section" class="view-report" onclick="navigateTo('production-section')">Details →</a></div>
+                        <canvas id="productionPieChart"></canvas>
+                    </div>
+                    <div class="pie-card custom-panel">
+                        <div class="card-header"><span>Top Wastage Items</span><a href="#wastage-section" class="view-report" onclick="navigateTo('wastage-section')">Details →</a></div>
+                        <canvas id="wastagePieChart"></canvas>
+                    </div>
+                    <div class="pie-card custom-panel">
+                        <div class="card-header"><span>Production by Branch</span><a href="#admin-section" class="view-report" onclick="navigateTo('admin-section')">Details →</a></div>
+                        <canvas id="branchesProductionPieChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Purchasing Section -->
+            <section id="purchasing-section" class="page-section">
+                <div class="section-header">
+                    <h2>Purchasing Orders</h2>
+                    <div class="header-buttons">
+                        <button class="warning-btn" onclick="openModal('urgent-payment-modal')" style="background: #e67e22; color: #fff; border:none; padding: 10px 15px; border-radius:6px; cursor:pointer;">
+                            <i class='bx bx-alarm-exclamation'></i> Urgent Payment
+                        </button>
+                        <button class="secondary-btn" id="export-po-btn"><i class='bx bx-export'></i> Export P.O.</button>
+                        <button class="primary-btn" onclick="openModal('po-modal')"><i class='bx bx-plus'></i> New PO</button>
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon purchases"><i class='bx bx-file'></i></div>
+                        <div class="kpi-info">
+                            <h3>Total POs</h3>
+                            <p>45 <span class="subtitle">This Month</span></p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon pending"><i class='bx bx-time-five'></i></div>
+                        <div class="kpi-info">
+                            <h3>Pending Approvals</h3>
+                            <p>8 <span class="subtitle">Orders</span></p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon inv"><i class='bx bx-wallet'></i></div>
+                        <div class="kpi-info">
+                            <h3>Total Spend</h3>
+                            <p>85,200 <span class="currency">SAR</span></p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon prod"><i class='bx bx-group'></i></div>
+                        <div class="kpi-info">
+                            <h3>Active Suppliers</h3>
+                            <p>12 <span class="subtitle">Vendors</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="custom-panel">
+                    <div class="panel-toolbar">
+                        <div class="toolbar-filters">
+                            <select>
+                                <option>Status: All</option>
+                                <option>Pending</option>
+                                <option>Approved</option>
+                                <option>Received</option>
+                            </select>
+                            <select>
+                                <option>Supplier: All</option>
+                                <option>Almarai</option>
+                                <option>Nadec</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- FIX: Consistent 11-column table. Removed duplicate checkbox th, aligned all rows -->
+                    <table class="styled-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="select-all-check" onclick="toggleAllCheckboxes(this)"></th>
+                                <th>PO Number</th>
+                                <th>Date</th>
+                                <th>Branch</th>
+                                <th>Supplier</th>
+                                <th>Subtotal</th>
+                                <th>VAT (15%)</th>
+                                <th>Total (SAR)</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>#PO-2024-001</td>
+                                <td>24 Oct 2024</td>
+                                <td>Main Branch</td>
+                                <td>Almarai</td>
+                                <td>3,913.04</td>
+                                <td>586.96</td>
+                                <td>4,500.00</td>
+                                <td><span class="status-badge pending">L1 Approval</span></td>
+                                <td>
+                                    <button class="action-btn"><i class='bx bx-show'></i></button>
+                                    <button class="action-btn approve"><i class='bx bx-check'></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>#PO-2024-002</td>
+                                <td>23 Oct 2024</td>
+                                <td>Jeddah Branch</td>
+                                <td>Nadec</td>
+                                <td>1,043.48</td>
+                                <td>156.52</td>
+                                <td>1,200.00</td>
+                                <td><span class="status-badge approved">Approved</span></td>
+                                <td>
+                                    <button class="action-btn" title="View"><i class='bx bx-show'></i></button>
+                                    <button class="action-btn" title="Receive Order" onclick="openModal('receive-po-modal')"><i class='bx bx-archive-in'></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>#PO-2024-003</td>
+                                <td>20 Oct 2024</td>
+                                <td>Main Branch</td>
+                                <td>Local Meat Co.</td>
+                                <td>13,043.48</td>
+                                <td>1,956.52</td>
+                                <td>15,000.00</td>
+                                <td><span class="status-badge received">Received</span></td>
+                                <td>
+                                    <button class="action-btn"><i class='bx bx-show'></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 3. Inventory Section -->
+            <section id="inventory-section" class="page-section">
+                <div class="section-header">
+                    <h2>Inventory Management</h2>
+                    <div class="header-buttons">
+                        <button class="primary-btn" onclick="openModal('add-item-modal')"><i class='bx bx-plus'></i> Add Item</button>
+                        <button class="secondary-btn" onclick="openModal('stock-transfer-modal')"><i class='bx bx-transfer'></i> Stock Transfer</button>
+                        <button class="secondary-btn"><i class='bx bx-cloud-download'></i> Export</button>
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon inv"><i class='bx bx-package'></i></div>
+                        <div class="kpi-info">
+                            <h3>Total Items</h3>
+                            <p>1,248 <span class="subtitle">SKUs</span></p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon pending"><i class='bx bx-error-circle'></i></div>
+                        <div class="kpi-info">
+                            <h3>Low Stock</h3>
+                            <p>15 <span class="subtitle">Items</span></p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon purchases"><i class='bx bx-wallet-alt'></i></div>
+                        <div class="kpi-info">
+                            <h3>Total Value</h3>
+                            <p>342,000 <span class="currency">SAR</span></p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon prod"><i class='bx bx-category'></i></div>
+                        <div class="kpi-info">
+                            <h3>Categories</h3>
+                            <p>8 <span class="subtitle">Active</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="custom-panel">
+                    <div class="panel-toolbar">
+                        <input type="text" placeholder="Search item..." class="search-input">
+                        <select>
+                            <option>Category: All</option>
+                            <option>Meat</option>
+                            <option>Vegetables</option>
+                            <option>Dairy</option>
+                        </select>
+                    </div>
+
+                    <table class="styled-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="select-all-check" onclick="toggleAllCheckboxes(this)"></th>
+                                <th>Item Name</th>
+                                <th>Category</th>
+                                <th>Unit</th>
+                                <th>Opening Stock</th>
+                                <th>Purchased</th>
+                                <th>Used / Waste</th>
+                                <th>Closing Stock</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>Chicken Breast</td>
+                                <td>Meat</td>
+                                <td>Kg</td>
+                                <td>50.0</td>
+                                <td>100.0</td>
+                                <td>120.0 / 2.0</td>
+                                <td><strong class="text-warning">28.0</strong></td>
+                                <td><span class="status-badge pending">Low Stock</span></td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>Basmati Rice</td>
+                                <td>Dry Store</td>
+                                <td>Kg</td>
+                                <td>200.0</td>
+                                <td>50.0</td>
+                                <td>40.0 / 0.0</td>
+                                <td><strong>210.0</strong></td>
+                                <td><span class="status-badge approved">In Stock</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 4. Production Section -->
+            <section id="production-section" class="page-section">
+                <div class="section-header">
+                    <h2>Daily Production</h2>
+                    <button class="primary-btn" onclick="openModal('production-modal')"><i class='bx bx-plus'></i> Record Production</button>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon prod"><i class='bx bx-restaurant'></i></div>
+                        <div class="kpi-info">
+                            <h3>Meals Produced</h3>
+                            <p>2,140 <span class="subtitle">Today</span></p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon purchases"><i class='bx bx-line-chart'></i></div>
+                        <div class="kpi-info">
+                            <h3>Estimated Cost</h3>
+                            <p>18,500 <span class="currency">SAR</span></p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon pending"><i class='bx bx-trash'></i></div>
+                        <div class="kpi-info">
+                            <h3>Logged Wastage</h3>
+                            <p>1.2 <span class="subtitle">%</span></p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon inv"><i class='bx bx-check-square'></i></div>
+                        <div class="kpi-info">
+                            <h3>Batches Completed</h3>
+                            <p>12 / 15 <span class="subtitle">Tasks</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="custom-panel">
+                    <table class="styled-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="select-all-check" onclick="toggleAllCheckboxes(this)"></th>
+                                <th>Date</th>
+                                <th>Menu Item</th>
+                                <th>Branch</th>
+                                <th>Qty Produced</th>
+                                <th>Estimated Cost (SAR)</th>
+                                <th>Wastage Logged</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>24 Oct 2024</td>
+                                <td>Chicken Shawarma</td>
+                                <td>Main Branch</td>
+                                <td>150 Portions</td>
+                                <td>450.00</td>
+                                <td>0 Portions</td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>24 Oct 2024</td>
+                                <td>Healthy Grill Box</td>
+                                <td>Main Branch</td>
+                                <td>80 Portions</td>
+                                <td>1,200.00</td>
+                                <td>2 Portions</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 5. Costing Section -->
+            <section id="costing-section" class="page-section">
+                <div class="section-header">
+                    <h2>Recipe Costing Engine</h2>
+                    <button class="primary-btn" onclick="openModal('recipe-modal')"><i class='bx bx-book-add'></i> Add Recipe</button>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon inv"><i class='bx bx-book-content'></i></div>
+                        <div class="kpi-info">
+                            <h3>Total Recipes</h3>
+                            <p>145 <span class="subtitle">Approved</span></p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon prod"><i class='bx bx-trending-up'></i></div>
+                        <div class="kpi-info">
+                            <h3>Avg Margin</h3>
+                            <p>68 <span class="subtitle">%</span></p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon purchases"><i class='bx bx-star'></i></div>
+                        <div class="kpi-info">
+                            <h3>Most Profitable</h3>
+                            <p>Shawarma <span class="subtitle">76% Margin</span></p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon pending"><i class='bx bx-error'></i></div>
+                        <div class="kpi-info">
+                            <h3>Needs Review</h3>
+                            <p>4 <span class="subtitle">Recipes</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="costing-cards">
+                    <div class="recipe-card">
+                        <img src="https://images.unsplash.com/photo-1528735602780-2552fd46c7af?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80" alt="Shawarma">
+                        <div class="recipe-info">
+                            <h3>Chicken Shawarma Meal</h3>
+                            <div class="recipe-meta">
+                                <span><i class='bx bx-cube'></i> 4 Ingredients</span>
+                                <span><i class='bx bx-money'></i> Cost: 3.5 SAR</span>
+                            </div>
+                            <div class="profit-margin">
+                                <span>Selling Price: 15 SAR</span>
+                                <span class="margin-badge">76% Margin</span>
+                            </div>
+                            <button class="outline-btn">View Breakdown</button>
+                        </div>
+                    </div>
+
+                    <div class="recipe-card">
+                        <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80" alt="Salad">
+                        <div class="recipe-info">
+                            <h3>Keto Chicken Salad</h3>
+                            <div class="recipe-meta">
+                                <span><i class='bx bx-cube'></i> 7 Ingredients</span>
+                                <span><i class='bx bx-money'></i> Cost: 8.2 SAR</span>
+                            </div>
+                            <div class="profit-margin">
+                                <span>Selling Price: 35 SAR</span>
+                                <span class="margin-badge">76.5% Margin</span>
+                            </div>
+                            <button class="outline-btn">View Breakdown</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. Branch Management Section -->
+            <section id="admin-section" class="page-section">
+                <div class="section-header">
+                    <h2>Branch Administration</h2>
+                    <button class="primary-btn" onclick="openModal('edit-branch-modal')"><i class='bx bx-plus'></i> Add Branch</button>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon inv"><i class='bx bx-buildings'></i></div>
+                        <div class="kpi-info">
+                            <h3>Total Branches</h3>
+                            <p>3 <span class="subtitle">Locations</span></p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon prod"><i class='bx bx-check-shield'></i></div>
+                        <div class="kpi-info">
+                            <h3>Active Branches</h3>
+                            <p>2 <span class="subtitle">Operational</span></p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon purchases"><i class='bx bx-group'></i></div>
+                        <div class="kpi-info">
+                            <h3>Total Staff</h3>
+                            <p>88 <span class="subtitle">Employees</span></p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon pending"><i class='bx bx-time'></i></div>
+                        <div class="kpi-info">
+                            <h3>In Setup</h3>
+                            <p>1 <span class="subtitle">Branch</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="custom-panel">
+                    <table class="styled-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="select-all-check" onclick="toggleAllCheckboxes(this)"></th>
+                                <th>Branch Name</th>
+                                <th>Location</th>
+                                <th>Manager</th>
+                                <th>Total Staff</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>Main Branch</td>
+                                <td>Riyadh, Olaya St</td>
+                                <td>Ahmed Ali</td>
+                                <td>45</td>
+                                <td><span class="status-badge approved">Active</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="openModal('edit-branch-modal')"><i class='bx bx-edit'></i></button>
+                                    <button class="action-btn delete" onclick="deleteBranch(this)"><i class='bx bx-trash'></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>Jeddah Branch</td>
+                                <td>Jeddah, Corniche</td>
+                                <td>Sami F.</td>
+                                <td>28</td>
+                                <td><span class="status-badge approved">Active</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="openModal('edit-branch-modal')"><i class='bx bx-edit'></i></button>
+                                    <button class="action-btn delete" onclick="deleteBranch(this)"><i class='bx bx-trash'></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>Dammam Cloud Kitchen</td>
+                                <td>Dammam Ind. Area</td>
+                                <td>Omar K.</td>
+                                <td>15</td>
+                                <td><span class="status-badge pending">Setup</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="openModal('edit-branch-modal')"><i class='bx bx-edit'></i></button>
+                                    <button class="action-btn delete" onclick="deleteBranch(this)"><i class='bx bx-trash'></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 7. Suppliers Section -->
+            <section id="suppliers-section" class="page-section">
+                <div class="section-header">
+                    <h2>Supplier Management</h2>
+                    <div class="header-buttons">
+                        <button class="primary-btn" onclick="openModal('add-supplier-modal')"><i class='bx bx-plus'></i> Add Supplier</button>
+                        <button class="secondary-btn" onclick="exportSuppliers('pdf')"><i class='bx bx-export'></i> PDF</button>
+                        <button class="secondary-btn" onclick="exportSuppliers('xls')"><i class='bx bx-spreadsheet'></i> XLS</button>
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon purchases"><i class='bx bx-store'></i></div>
+                        <div class="kpi-info"><h3>Total Suppliers</h3><p id="kpi-sup-total">3 <span class="subtitle">Active</span></p></div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon pending"><i class='bx bx-credit-card'></i></div>
+                        <div class="kpi-info"><h3>Total Payable</h3><p id="kpi-sup-payable">20,000 <span class="currency">SAR</span></p></div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon prod"><i class='bx bx-check-circle'></i></div>
+                        <div class="kpi-info"><h3>Paid This Month</h3><p id="kpi-sup-paid">43,500 <span class="currency">SAR</span></p></div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon inv"><i class='bx bx-error-circle'></i></div>
+                        <div class="kpi-info"><h3>Overdue</h3><p id="kpi-sup-overdue">1 <span class="subtitle">Supplier</span></p></div>
+                    </div>
+                </div>
+
+                <div class="custom-panel">
+                    <div class="panel-toolbar">
+                        <input type="text" id="supplier-search" placeholder="Search supplier name..." class="search-input" oninput="filterSuppliers()">
+                        <select id="supplier-status-filter" onchange="filterSuppliers()">
+                            <option value="all">Status: All</option>
+                            <option value="active">Active</option>
+                            <option value="overdue">Overdue</option>
+                            <option value="settled">Settled</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                        <select id="supplier-cat-filter" onchange="filterSuppliers()">
+                            <option value="all">Category: All</option>
+                            <option value="meat">Meat</option>
+                            <option value="dairy">Dairy</option>
+                            <option value="dry">Dry Goods</option>
+                            <option value="vegetables">Vegetables</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <table class="styled-table" id="suppliers-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="select-all-check" onclick="toggleAllCheckboxes(this)"></th>
+                                <th>Supplier Name</th>
+                                <th>Category</th>
+                                <th>Contact</th>
+                                <th>Total Balance (SAR)</th>
+                                <th>Paid (SAR)</th>
+                                <th>Remaining (SAR)</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="suppliers-table-body">
+                            <tr data-status="active" data-category="dairy" data-name="almarai">
+                                <td><input type="checkbox"></td>
+                                <td><strong>Almarai</strong></td>
+                                <td>Dairy</td>
+                                <td>+966-11-2334455</td>
+                                <td>20,000.00</td>
+                                <td>15,000.00</td>
+                                <td><span style="color:#e74c3c;font-weight:700;">5,000.00</span></td>
+                                <td>2025-03-30</td>
+                                <td><span class="status-badge approved">Active</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="editSupplier(this)"><i class='bx bx-edit'></i></button>
+                                    <button class="action-btn delete" onclick="deleteSupplier(this)"><i class='bx bx-trash'></i></button>
+                                </td>
+                            </tr>
+                            <tr data-status="overdue" data-category="meat" data-name="chicken supplier">
+                                <td><input type="checkbox"></td>
+                                <td><strong>Chicken Supplier</strong></td>
+                                <td>Meat</td>
+                                <td>+966-12-5556677</td>
+                                <td>35,000.00</td>
+                                <td>20,000.00</td>
+                                <td><span style="color:#e67e22;font-weight:700;">15,000.00</span></td>
+                                <td>2025-04-05</td>
+                                <td><span class="status-badge pending" style="background:#e67e22;color:#fff;">Overdue</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="editSupplier(this)"><i class='bx bx-edit'></i></button>
+                                    <button class="action-btn delete" onclick="deleteSupplier(this)"><i class='bx bx-trash'></i></button>
+                                </td>
+                            </tr>
+                            <tr data-status="settled" data-category="dry" data-name="nadec">
+                                <td><input type="checkbox"></td>
+                                <td><strong>Nadec</strong></td>
+                                <td>Dry Goods</td>
+                                <td>+966-11-7778899</td>
+                                <td>8,500.00</td>
+                                <td>8,500.00</td>
+                                <td><span style="color:#2ecc71;font-weight:700;">0.00</span></td>
+                                <td>&#8212;</td>
+                                <td><span class="status-badge approved">Settled</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="editSupplier(this)"><i class='bx bx-edit'></i></button>
+                                    <button class="action-btn delete" onclick="deleteSupplier(this)"><i class='bx bx-trash'></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 8. Finance Section -->
+            <section id="finance-section" class="page-section">
+                <div class="section-header">
+                    <h2 data-lang="menu_finance">Finance Department</h2>
+                    <div class="header-buttons">
+                        <button class="secondary-btn" onclick="exportSection('finance', 'pdf')">PDF</button>
+                        <button class="secondary-btn" onclick="exportSection('finance', 'xls')">XLS</button>
+                    </div>
+                </div>
+
+                <div class="finance-grid">
+                    <div class="custom-panel">
+                        <h3>Supplier Statements (SOA)</h3>
+                        <!-- FIX: Removed doubled checkbox column; single consistent checkbox column -->
+                        <table class="styled-table">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" class="select-all-check" onclick="toggleAllCheckboxes(this)"></th>
+                                    <th>Supplier</th>
+                                    <th>Paid</th>
+                                    <th>Remaining</th>
+                                    <th>Deadline</th>
+                                    <th>Priority</th>
+                                </tr>
+                            </thead>
+                            <tbody id="soa-table-body">
+                                <tr>
+                                    <td><input type="checkbox"></td>
+                                    <td>Almarai</td>
+                                    <td>15,000</td>
+                                    <td>5,000</td>
+                                    <td>2025-03-30</td>
+                                    <td><span class="status-badge pending">Normal</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="custom-panel">
+                        <h3>Invoices & Attachments</h3>
+                        <table class="styled-table">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" class="select-all-check" onclick="toggleAllCheckboxes(this)"></th>
+                                    <th>Date</th>
+                                    <th>Invoice No.</th>
+                                    <th>PO Reference</th>
+                                    <th>Supplier</th>
+                                    <th>Branch</th>
+                                    <th>Attached File</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="finance-invoices-body">
+                                <tr><td colspan="9" style="text-align:center;">Loading invoices...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="custom-panel" style="margin-top:20px;">
+                    <h3>Urgent Payment Requests (Priority)</h3>
+                    <table class="styled-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="select-all-check" onclick="toggleAllCheckboxes(this)"></th>
+                                <th>Request Date</th>
+                                <th>Supplier</th>
+                                <th>Reason</th>
+                                <th>Requested By</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="urgent-requests-body">
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>2025-02-12</td>
+                                <td>Chicken Supplier</td>
+                                <td>Daily Production - Low Stock</td>
+                                <td>Procurement Dept.</td>
+                                <td><span class="status-badge pending" style="background: #e67e22; color:#fff;">Urgent</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 9. Users Management Section -->
+            <section id="users-section" class="page-section">
+                <div class="section-header">
+                    <h2>User Management</h2>
+                    <button class="primary-btn" onclick="openModal('user-modal')"><i class='bx bx-user-plus'></i> Add User</button>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon inv"><i class='bx bx-user'></i></div>
+                        <div class="kpi-info">
+                            <h3>Total Users</h3>
+                            <p>24 <span class="subtitle">Registered</span></p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon prod"><i class='bx bx-user-check'></i></div>
+                        <div class="kpi-info">
+                            <h3>Active Users</h3>
+                            <p>21 <span class="subtitle">Accounts</span></p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon purchases"><i class='bx bx-shield-quarter'></i></div>
+                        <div class="kpi-info">
+                            <h3>Admins</h3>
+                            <p>3 <span class="subtitle">Super Admins</span></p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon pending"><i class='bx bx-user-x'></i></div>
+                        <div class="kpi-info">
+                            <h3>Inactive</h3>
+                            <p>3 <span class="subtitle">Accounts</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="custom-panel">
+                    <table class="styled-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="select-all-check" onclick="toggleAllCheckboxes(this)"></th>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Branch Access</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>ahmed_admin</td>
+                                <td>Super Admin</td>
+                                <td>All Branches</td>
+                                <td><span class="status-badge approved">Active</span></td>
+                                <td><button class="action-btn"><i class='bx bx-edit'></i></button></td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>sami_chef</td>
+                                <td>Chef / Production Manager</td>
+                                <td>Main Branch</td>
+                                <td><span class="status-badge approved">Active</span></td>
+                                <td><button class="action-btn"><i class='bx bx-edit'></i></button></td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>khalid_proc</td>
+                                <td>Procurement Officer</td>
+                                <td>All Branches</td>
+                                <td><span class="status-badge pending">Inactive</span></td>
+                                <td><button class="action-btn"><i class='bx bx-edit'></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 10. Wastage Management Section -->
+            <section id="wastage-section" class="page-section">
+                <div class="section-header">
+                    <h2 data-lang="wastage_title">Wastage Logging</h2>
+                    <button class="primary-btn" onclick="openModal('wastage-modal')"><i class='bx bx-plus'></i> Log Wastage</button>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon pending"><i class='bx bx-trash'></i></div>
+                        <div class="kpi-info">
+                            <h3>Total Logged</h3>
+                            <p>15 <span class="subtitle">Logs</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="custom-panel">
+                    <table class="styled-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="select-all-check" onclick="toggleAllCheckboxes(this)"></th>
+                                <th data-lang="th_date">Date</th>
+                                <th data-lang="th_item">Item Name</th>
+                                <th data-lang="th_qty">Qty Wasted</th>
+                                <th data-lang="th_reason">Reason</th>
+                                <th data-lang="th_branch">Branch</th>
+                            </tr>
+                        </thead>
+                        <tbody id="wastage-table-body">
+                            <!-- Dynamic Rows Here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="section-footer">
+                    <button class="secondary-btn" onclick="exportSection('wastage', 'pdf')">Export PDF</button>
+                    <button class="secondary-btn" onclick="exportSection('wastage', 'xls')">Export XLS</button>
+                </div>
+            </section>
+
+            <!-- 11. Settings Section -->
+            <section id="settings-section" class="page-section">
+                <div class="section-header">
+                    <h2 data-lang="menu_settings">Settings</h2>
+                </div>
+
+                <div class="settings-grid">
+                    <div class="custom-panel">
+                        <h3>General Settings</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <strong>Dark Mode</strong>
+                                <p>Toggle system theme</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" checked onchange="toggleTheme()">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <strong>System Language</strong>
+                                <p>Default interface language</p>
+                            </div>
+                            <select onchange="applyLanguage(this.value)">
+                                <option value="en">English (US)</option>
+                                <option value="ar">Arabic (KSA)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="custom-panel">
+                        <h3>User & Permissions</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <strong>Self-Registration</strong>
+                                <p>Allow new users to sign up</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <strong>Multi-Branch Auth</strong>
+                                <p>Require branch code on signup</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 12. AI Assistant Section — FIX: moved inside .pages-container, removed inline display:none -->
+            <section id="ai-assistant-section" class="page-section">
+                <div class="section-header">
+                    <h2>AI Data Assistant <span class="badge">BETA</span></h2>
+                    <p>Ask questions in plain English/Arabic about your ERP data</p>
+                </div>
+
+                <div class="ai-chat-container">
+                    <div class="ai-input-area">
+                        <textarea id="ai-user-prompt" placeholder="Example: Show me total purchase orders by branch this month..."></textarea>
+                        <button class="ai-ask-btn" onclick="askAiAssistant()">
+                            <i class='bx bx-sparkles'></i> Generate SQL & Fetch Data
+                        </button>
+                    </div>
+
+                    <div id="ai-response-area" style="display:none;">
+                        <div class="sql-code-box">
+                            <div class="sql-header">Generated PostgreSQL Query:</div>
+                            <pre><code id="ai-sql-display"></code></pre>
+                        </div>
+                        <div class="results-table-container">
+                            <table class="styled-table" id="ai-results-table">
+                                <thead id="ai-results-head"></thead>
+                                <tbody id="ai-results-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div><!-- /.pages-container -->
+
+    </main><!-- /.main-content -->
+
+    <!-- Authentication Overlay -->
+    <!-- ═══════════════════════════════════════════════════════
+         AUTH OVERLAY  — Blockchain Login Page
+    ════════════════════════════════════════════════════════ -->
+    <div id="auth-overlay" class="auth-overlay active">
+
+        <!-- Full-screen animated blockchain canvas -->
+        <canvas id="auth-canvas"></canvas>
+
+        <!-- Floating brand text (top-left) -->
+        <div class="auth-brand-watermark">
+            <span>MAN</span><span class="wm-3">-3</span><span> PLUS</span>
+        </div>
+
+        <!-- Center card -->
+        <div class="auth-box" id="auth-box-wrap">
+
+            <!-- ── LOGO ── -->
+            <div class="auth-logo-row">
+                <div class="auth-logo-icon">
+                    <i class="bx bx-restaurant"></i>
+                </div>
+                <div class="auth-logo-text">
+                    <h1>MAN<span>-3</span> PLUS</h1>
+                    <p>Restaurant Management System</p>
+                </div>
+            </div>
+
+            <!-- ── TABS ── -->
+            <div class="auth-tabs" id="auth-tabs-row">
+                <button class="auth-tab active" id="tab-login"  onclick="toggleAuthMode('login')">
+                    <i class="bx bx-log-in"></i> Sign In
+                </button>
+                <button class="auth-tab" id="tab-signup" onclick="toggleAuthMode('signup')">
+                    <i class="bx bx-user-plus"></i> Sign Up
+                </button>
+            </div>
+
+            <!-- ══════════════════════════════════════════
+                 SIGN IN PANEL
+            ══════════════════════════════════════════ -->
+            <div id="auth-panel-login" class="auth-panel">
+                <form onsubmit="event.preventDefault(); doLogin();" autocomplete="on">
+
+                    <div class="auth-field">
+                        <label><i class="bx bx-envelope"></i> Email Address</label>
+                        <div class="auth-input-wrap">
+                            <input type="email" id="login-email"
+                                   placeholder="your@email.com"
+                                   required autocomplete="email">
+                        </div>
+                    </div>
+
+                    <div class="auth-field">
+                        <label><i class="bx bx-lock-alt"></i> Password</label>
+                        <div class="auth-input-wrap has-eye">
+                            <input type="password" id="login-password"
+                                   placeholder="••••••••"
+                                   required autocomplete="current-password">
+                            <i class="bx bx-hide auth-eye"
+                               onclick="togglePwd('login-password',this)"
+                               title="Show/hide"></i>
+                        </div>
+                    </div>
+
+                    <div class="auth-forgot-row">
+                        <span onclick="toggleAuthMode('forgot')" class="auth-link-small">
+                            <i class="bx bx-help-circle"></i> Forgot password?
+                        </span>
+                    </div>
+
+                    <button type="submit" class="auth-submit-btn" id="btn-login">
+                        <span>SIGN IN</span>
+                        <i class="bx bx-right-arrow-alt"></i>
+                    </button>
+                </form>
+
+                <p id="login-error" class="auth-msg error" style="display:none;"></p>
+
+                <div class="auth-switch-row">
+                    <span>Don't have an account?</span>
+                    <span class="auth-link" onclick="toggleAuthMode('signup')">Create one →</span>
+                </div>
+            </div>
+
+            <!-- ══════════════════════════════════════════
+                 SIGN UP PANEL  (Branch Manager fields)
+            ══════════════════════════════════════════ -->
+            <div id="auth-panel-signup" class="auth-panel" style="display:none;">
+                <form onsubmit="event.preventDefault(); doSignUp();" autocomplete="off">
+
+                    <!-- Row 1: Full Name + Role -->
+                    <div class="auth-form-row">
+                        <div class="auth-field">
+                            <label><i class="bx bx-user"></i> Full Name</label>
+                            <div class="auth-input-wrap">
+                                <input type="text" id="signup-name"
+                                       placeholder="Ahmed Ali"
+                                       required autocomplete="name">
+                            </div>
+                        </div>
+                        <div class="auth-field">
+                            <label><i class="bx bx-id-card"></i> Role</label>
+                            <div class="auth-input-wrap">
+                                <select id="signup-role" class="auth-select">
+                                    <option value="branch_manager">Branch Manager</option>
+                                    <option value="procurement_officer">Procurement Officer</option>
+                                    <option value="procurement_assistant">Procurement Assistant</option>
+                                    <option value="finance">Finance</option>
+                                    <option value="chef">Chef</option>
+                                    <option value="viewer">Viewer</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Branch Name + Branch Code -->
+                    <div class="auth-form-row">
+                        <div class="auth-field">
+                            <label><i class="bx bx-buildings"></i> Branch Name</label>
+                            <div class="auth-input-wrap">
+                                <input type="text" id="signup-branch-name"
+                                       placeholder="Main Branch / Jeddah…"
+                                       required>
+                            </div>
+                        </div>
+                        <div class="auth-field">
+                            <label><i class="bx bx-hash"></i> Branch Code</label>
+                            <div class="auth-input-wrap">
+                                <input type="text" id="signup-branch-code"
+                                       placeholder="e.g. B-001"
+                                       required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Email (full width) -->
+                    <div class="auth-field">
+                        <label><i class="bx bx-envelope"></i> Email Address</label>
+                        <div class="auth-input-wrap">
+                            <input type="email" id="signup-email"
+                                   placeholder="manager@restaurant.com"
+                                   required autocomplete="email">
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Password + Confirm -->
+                    <div class="auth-form-row">
+                        <div class="auth-field">
+                            <label><i class="bx bx-lock-alt"></i> Password <small>(min 6)</small></label>
+                            <div class="auth-input-wrap has-eye">
+                                <input type="password" id="signup-password"
+                                       placeholder="••••••••"
+                                       required minlength="6" autocomplete="new-password">
+                                <i class="bx bx-hide auth-eye"
+                                   onclick="togglePwd('signup-password',this)"></i>
+                            </div>
+                        </div>
+                        <div class="auth-field">
+                            <label><i class="bx bx-lock-open-alt"></i> Confirm Password</label>
+                            <div class="auth-input-wrap has-eye">
+                                <input type="password" id="signup-confirm"
+                                       placeholder="••••••••"
+                                       required autocomplete="new-password">
+                                <i class="bx bx-hide auth-eye"
+                                   onclick="togglePwd('signup-confirm',this)"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="auth-submit-btn" id="btn-signup">
+                        <span>CREATE ACCOUNT</span>
+                        <i class="bx bx-check-shield"></i>
+                    </button>
+                </form>
+
+                <p id="signup-error"   class="auth-msg error"   style="display:none;"></p>
+                <p id="signup-success" class="auth-msg success" style="display:none;"></p>
+
+                <div class="auth-switch-row">
+                    <span>Already have an account?</span>
+                    <span class="auth-link" onclick="toggleAuthMode('login')">Sign in →</span>
+                </div>
+            </div>
+
+            <!-- ══════════════════════════════════════════
+                 FORGOT PASSWORD PANEL
+            ══════════════════════════════════════════ -->
+            <div id="auth-panel-forgot" class="auth-panel" style="display:none;">
+
+                <div class="auth-forgot-header">
+                    <div class="auth-forgot-icon"><i class="bx bx-key"></i></div>
+                    <h3>Reset Password</h3>
+                    <p>Enter your registered email and we'll send a secure reset link.</p>
+                </div>
+
+                <form onsubmit="event.preventDefault(); doForgot();">
+                    <div class="auth-field">
+                        <label><i class="bx bx-envelope"></i> Email Address</label>
+                        <div class="auth-input-wrap">
+                            <input type="email" id="forgot-email"
+                                   placeholder="your@email.com" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="auth-submit-btn" id="btn-forgot">
+                        <span>SEND RESET LINK</span>
+                        <i class="bx bx-send"></i>
+                    </button>
+                </form>
+
+                <p id="forgot-msg" class="auth-msg" style="display:none;"></p>
+
+                <div class="auth-switch-row" style="justify-content:center; margin-top:20px;">
+                    <span class="auth-link" onclick="toggleAuthMode('login')">
+                        <i class="bx bx-arrow-back"></i> Back to Sign In
+                    </span>
+                </div>
+            </div>
+
+        </div><!-- /auth-box -->
+
+        <!-- Bottom tagline -->
+        <div class="auth-bottom-tag">
+            Powered by <strong>MAN-3 Plus ERP</strong> &nbsp;•&nbsp; Saudi Restaurant Chain Management
+        </div>
+
+    </div><!-- /auth-overlay -->
+
+    <!-- ===================== MODALS ===================== -->
+
+    <!-- Modal: New Purchase Order (single, deduplicated) -->
+    <div id="po-modal" class="modal">
+        <div class="modal-content" style="width: 700px;">
+            <div class="modal-header">
+                <h2>Create Purchase Order</h2>
+                <span class="close-modal" onclick="closeModal('po-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="po-form">
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Supplier Name</label>
+                            <input type="text" id="po-supplier" placeholder="e.g. Almarai">
+                        </div>
+                        <div class="input-group">
+                            <label>Branch Name</label>
+                            <select id="po-branch">
+                                <option>Main Branch</option>
+                                <option>Jeddah Branch</option>
+                                <option>Dammam Branch</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="items-list">
+                        <h4>PO Items</h4>
+                        <div id="po-items-container">
+                            <div class="item-row" style="grid-template-columns: 2fr 1fr 1fr 1fr 1fr 40px;">
+                                <input type="text" id="po-item-name" placeholder="Item">
+                                <input type="number" id="po-item-qty" placeholder="Qty" oninput="calculatePOTotal()">
+                                <input type="text" id="po-item-unit" placeholder="Unit" value="kg">
+                                <input type="number" id="po-item-price" placeholder="Price (No VAT)" oninput="calculatePOTotal()">
+                                <div class="vat-field">
+                                    <label style="font-size: 10px; display: block;">VAT 15%</label>
+                                    <input type="number" id="po-item-vat" readonly style="width: 70px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-footer-totals" style="text-align: right; margin-top: 20px; font-size: 18px;">
+                        <strong>Total (inc. VAT): <span id="po-total-calc">0.00</span> SAR</strong>
+                    </div>
+                    <div class="approval-flow" style="margin-top: 15px; font-size: 12px; color: #888;">
+                        <p>Approval Flow: 1. Procurement Officer -> 2. Asst. -> 3. Finance</p>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-btn" onclick="closeModal('po-modal')">Cancel</button>
+                <button class="primary-btn" onclick="submitPO()">Create & Send for Approval</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add User -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add / Edit User</h2>
+                <span class="close-modal" onclick="closeModal('user-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="user-form">
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Username</label>
+                            <input type="text" placeholder="Enter username">
+                        </div>
+                        <div class="input-group">
+                            <label>Password</label>
+                            <input type="password" placeholder="Enter password">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Role / Access Level</label>
+                            <select>
+                                <option>Super Admin</option>
+                                <option>Procurement Officer</option>
+                                <option>Procurement Assistant</option>
+                                <option>Finance Department</option>
+                                <option>Branch Manager</option>
+                                <option>Chef / Production Manager</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Branch Access</label>
+                            <select>
+                                <option>All Branches</option>
+                                <option>Main Branch</option>
+                                <option>Jeddah Branch</option>
+                                <option>Dammam Cloud Kitchen</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="access-settings">
+                        <h4>User Access Settings</h4>
+                        <div class="permissions-grid">
+                            <label class="check-item"><input type="checkbox" checked> Purchasing</label>
+                            <label class="check-item"><input type="checkbox" checked> Inventory</label>
+                            <label class="check-item"><input type="checkbox" checked> Production</label>
+                            <label class="check-item"><input type="checkbox" checked> Costing</label>
+                            <label class="check-item"><input type="checkbox" checked> Branches</label>
+                            <label class="check-item"><input type="checkbox" checked> Users Control</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-btn" onclick="closeModal('user-modal')">Cancel</button>
+                <button class="primary-btn" onclick="submitUser()">Save User</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Receive PO -->
+    <div id="receive-po-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Receive Purchase Order</h2>
+                <span class="close-modal" onclick="closeModal('receive-po-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="receive-po-form" onsubmit="event.preventDefault();">
+                    <p class="text-muted" style="margin-bottom: 20px;">
+                        Confirming receipt for <strong id="receive-po-label">#PO — select from table</strong>
+                    </p>
+
+                    <!-- Hidden PO id populated when opening modal -->
+                    <input type="hidden" id="receive-po-id">
+
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Received Date <span class="text-danger">*</span></label>
+                            <input type="date" id="po-received-date" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Supplier Invoice Number <span class="text-danger">*</span></label>
+                            <input type="text" id="po-invoice-number" placeholder="e.g. INV-9921" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group" style="margin-bottom:20px;">
+                        <label>Attach Invoice Document <span class="text-danger">*</span> <span style="font-size:11px;color:#888;">(PDF, JPG, PNG — max 10MB)</span></label>
+                        <div class="file-upload-box" id="invoice-drop-zone"
+                             style="border:2px dashed var(--border-color); padding:20px; border-radius:8px; text-align:center; background:rgba(0,0,0,0.1); cursor:pointer; transition:border-color 0.3s;"
+                             ondragover="event.preventDefault(); this.style.borderColor='#2ecc71';"
+                             ondragleave="this.style.borderColor='var(--border-color)';"
+                             ondrop="handleInvoiceDrop(event);"
+                             onclick="document.getElementById('invoice-file').click()">
+                            <i class='bx bx-cloud-upload' style="font-size:32px;color:#888;display:block;margin-bottom:8px;"></i>
+                            <p style="font-size:13px;margin:0;">Drag & drop or <span style="color:#2ecc71;font-weight:600;">click to browse</span></p>
+                            <p id="invoice-file-name" style="font-size:12px;color:#2ecc71;margin-top:8px;display:none;"></p>
+                            <input type="file" id="invoice-file" accept=".pdf,.jpg,.jpeg,.png,.webp"
+                                   style="display:none;"
+                                   onchange="previewInvoiceFile(this)">
+                        </div>
+                    </div>
+
+                    <!-- File preview (shows after selection) -->
+                    <div id="invoice-preview-box" style="display:none; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:14px; margin-bottom:16px;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <i class='bx bx-file-blank' style="font-size:28px;color:#f39c12;"></i>
+                            <div>
+                                <p id="preview-file-name" style="color:var(--text-main);font-weight:600;margin:0;"></p>
+                                <p id="preview-file-size" style="font-size:12px;margin:0;"></p>
+                            </div>
+                            <button type="button" onclick="clearInvoiceFile()"
+                                style="margin-left:auto; background:none; border:none; color:var(--danger); font-size:20px; cursor:pointer;">
+                                <i class='bx bx-x'></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="secondary-btn" onclick="closeModal('receive-po-modal')">Cancel</button>
+                <button type="button" class="primary-btn" id="confirm-receive-btn"
+                        onclick="confirmReceivePO(document.getElementById('receive-po-id').value)">
+                    <i class='bx bx-archive-in'></i> Confirm Receipt
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Log Wastage -->
+    <div id="wastage-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Log Inventory Wastage</h2>
+                <span class="close-modal" onclick="closeModal('wastage-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="wastage-form">
+                    <p class="text-muted" style="margin-bottom: 20px;">Logging wastage will immediately deduct stock from your active inventory.</p>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Item <span class="text-danger">*</span></label>
+                            <input type="text" id="wastage-item" placeholder="e.g. Chicken Breast" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Quantity Wasted <span class="text-danger">*</span></label>
+                            <input type="number" id="wastage-qty" value="1" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Reason <span class="text-danger">*</span></label>
+                            <select id="wastage-reason" required>
+                                <option>Expired</option>
+                                <option>Spoiled</option>
+                                <option>Accidental Breakage</option>
+                                <option>Overcooked</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="secondary-btn" onclick="closeModal('wastage-modal')">Cancel</button>
+                <button type="button" class="primary-btn" onclick="submitWastage()">Deduct from Inventory</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Record Production -->
+    <div id="production-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 data-lang="record_production">Record Daily Production</h2>
+                <span class="close-modal" onclick="closeModal('production-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="production-form">
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Menu Item</label>
+                            <input type="text" id="prod-menu-item" placeholder="Chicken Keto Box">
+                        </div>
+                        <div class="input-group">
+                            <label>Branch</label>
+                            <select id="prod-branch">
+                                <option>Main Branch</option>
+                                <option>Jeddah Branch</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="yield-box" style="background:#1a1a1a; padding:15px; border-radius:8px; margin:15px 0;">
+                        <h4>Yield Calculation</h4>
+                        <div class="form-row">
+                            <div class="input-group">
+                                <label>Raw Weight (kg)</label>
+                                <input type="number" id="raw-weight-prod" step="0.01" oninput="calculateYieldProd()">
+                            </div>
+                            <div class="input-group">
+                                <label>Cooking Loss / Water %</label>
+                                <input type="number" id="loss-pct-prod" value="15" oninput="calculateYieldProd()">
+                            </div>
+                            <div class="input-group">
+                                <label>Final Produced (kg)</label>
+                                <input type="number" id="final-weight-prod" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ingredients-list">
+                        <h4>Ingredients Used</h4>
+                        <div id="prod-ingredients-list">
+                            <div class="item-row">
+                                <input type="text" placeholder="Ingredient Name">
+                                <input type="number" placeholder="Qty">
+                                <input type="text" placeholder="Unit" value="kg">
+                            </div>
+                        </div>
+                        <button type="button" class="secondary-btn small" onclick="addProdIngredient()">+ Add Ingredient</button>
+                    </div>
+                    <div class="form-row" style="margin-top:15px;">
+                        <div class="input-group">
+                            <label>Portions Produced</label>
+                            <input type="number" id="prod-portions" value="10">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-btn" onclick="closeModal('production-modal')">Cancel</button>
+                <button class="primary-btn" onclick="submitProduction()">Record & Update Inventory</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add / Edit Recipe -->
+    <div id="recipe-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add / Edit Recipe</h2>
+                <span class="close-modal" onclick="closeModal('recipe-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="recipe-form">
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Recipe Name</label>
+                            <input type="text" id="recipe-name" placeholder="e.g. Beef Burger">
+                        </div>
+                        <div class="input-group">
+                            <label>Target Branch</label>
+                            <select id="recipe-branch">
+                                <option value="all">Global (All Branches)</option>
+                                <option value="main">Main Branch</option>
+                                <option value="jeddah">Jeddah Branch</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="items-list">
+                        <h4>Ingredients & Yield</h4>
+                        <div id="recipe-ingredients-container">
+                            <div class="item-row">
+                                <input type="text" placeholder="Ingredient">
+                                <input type="number" placeholder="Qty">
+                                <input type="text" placeholder="Unit" value="kg">
+                            </div>
+                        </div>
+                        <button type="button" class="secondary-btn small" onclick="addRecipeIngredient()">+ Add Ingredient</button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-btn" onclick="closeModal('recipe-modal')">Cancel</button>
+                <button class="primary-btn" onclick="submitRecipe()">Save Recipe</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add Inventory Item -->
+    <div id="add-item-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Inventory Item</h2>
+                <span class="close-modal" onclick="closeModal('add-item-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="add-item-form">
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Item Name</label>
+                            <input type="text" id="inv-item-name" placeholder="e.g. Tomato">
+                        </div>
+                        <div class="input-group">
+                            <label>Category</label>
+                            <input type="text" id="inv-item-cat" placeholder="Manual Category">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Quantity</label>
+                            <input type="number" id="inv-item-qty" placeholder="0">
+                        </div>
+                        <div class="input-group">
+                            <label>Unit</label>
+                            <input type="text" id="inv-item-unit" placeholder="kg / box">
+                        </div>
+                        <div class="input-group">
+                            <label>Unit Price (No VAT)</label>
+                            <input type="number" id="inv-item-price" placeholder="0.00">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-btn" onclick="closeModal('add-item-modal')">Cancel</button>
+                <button class="primary-btn" onclick="submitAddItem()">Add Item</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add / Edit Branch -->
+    <div id="edit-branch-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add / Edit Branch</h2>
+                <span class="close-modal" onclick="closeModal('edit-branch-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="branch-form">
+                    <div class="input-group">
+                        <label>Branch Name</label>
+                        <input type="text" id="branch-name-val" placeholder="e.g. Jeddah Branch">
+                    </div>
+                    <div class="input-group">
+                        <label>Location</label>
+                        <input type="text" id="branch-loc-val" placeholder="City, District">
+                    </div>
+                    <div class="input-group">
+                        <label>Manager</label>
+                        <input type="text" id="branch-mgr-val" placeholder="Manager Name">
+                    </div>
+                    <div class="input-group">
+                        <label>Status</label>
+                        <select id="branch-status-val">
+                            <option>Active</option>
+                            <option>Inactive</option>
+                            <option>In Setup</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-btn" onclick="closeModal('edit-branch-modal')">Cancel</button>
+                <button class="primary-btn" onclick="submitBranch()">Save Branch</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Stock Transfer -->
+    <div id="stock-transfer-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Stock Transfer</h2>
+                <span class="close-modal" onclick="closeModal('stock-transfer-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="transfer-form">
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>From Branch</label>
+                            <select id="transfer-from">
+                                <option>Main Warehouse</option>
+                                <option>Jeddah Branch</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>To Branch</label>
+                            <select id="transfer-to">
+                                <option>Riyadh Branch</option>
+                                <option>Jeddah Branch</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Item</label>
+                        <select id="transfer-item">
+                            <option>Chicken Breast</option>
+                            <option>Basmati Rice</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Quantity to Transfer</label>
+                        <input type="number" id="transfer-qty" placeholder="0.00">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-btn" onclick="closeModal('stock-transfer-modal')">Cancel</button>
+                <button class="primary-btn" onclick="submitStockTransfer()">Complete Transfer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add / Edit Supplier -->
+    <div id="add-supplier-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add / Edit Supplier</h2>
+                <span class="close-modal" onclick="closeModal('add-supplier-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="add-supplier-form">
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Supplier Name <span class="text-danger">*</span></label>
+                            <input type="text" id="sup-name" placeholder="e.g. Almarai">
+                        </div>
+                        <div class="input-group">
+                            <label>Category</label>
+                            <select id="sup-category">
+                                <option value="meat">Meat</option>
+                                <option value="dairy">Dairy</option>
+                                <option value="dry">Dry Goods</option>
+                                <option value="vegetables">Vegetables</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Contact / Phone</label>
+                            <input type="text" id="sup-contact" placeholder="+966-XX-XXXXXXX">
+                        </div>
+                        <div class="input-group">
+                            <label>Due Date</label>
+                            <input type="date" id="sup-due">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Total Balance (SAR) <span class="text-danger">*</span></label>
+                            <input type="number" id="sup-total" placeholder="0.00" oninput="calcSupplierRemaining()">
+                        </div>
+                        <div class="input-group">
+                            <label>Amount Paid (SAR)</label>
+                            <input type="number" id="sup-paid" placeholder="0.00" oninput="calcSupplierRemaining()">
+                        </div>
+                        <div class="input-group">
+                            <label>Remaining (SAR)</label>
+                            <input type="number" id="sup-remaining" placeholder="0.00" readonly style="opacity:0.7;">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Status</label>
+                        <select id="sup-status">
+                            <option value="active">Active</option>
+                            <option value="overdue">Overdue</option>
+                            <option value="settled">Settled</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-btn" onclick="closeModal('add-supplier-modal')">Cancel</button>
+                <button class="primary-btn" onclick="submitSupplier()">Save Supplier</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Urgent Payment Request -->
+    <div id="urgent-payment-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Request Urgent Payment</h2>
+                <span class="close-modal" onclick="closeModal('urgent-payment-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="urgent-form">
+                    <div class="input-group">
+                        <label>Priority Supplier</label>
+                        <input type="text" id="urgent-supplier" placeholder="e.g. Chicken Supplier">
+                    </div>
+                    <div class="input-group">
+                        <label>Reason for Urgency</label>
+                        <textarea id="urgent-reason" style="background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px; border-radius: 6px;" placeholder="e.g. Daily Production"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-btn" onclick="closeModal('urgent-payment-modal')">Cancel</button>
+                <button class="primary-btn" onclick="submitUrgentRequest()" style="background: #e67e22;">Send Priority Message</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+</body>
+</html>
