@@ -967,9 +967,9 @@ window.doLogin = async () => {
     if (errEl) errEl.style.display = 'none';
 
     const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-
     if (error) {
-        authMsg('login-error', error.message);
+        console.error('Login Error:', error);
+        authMsg('login-error', '❌ ' + error.message + (error.message.includes('fetch') ? ' (Network/Supabase error)' : ''));
         setBtn('btn-login', 'SIGN IN', false);
     } else {
         loginSuccess(data.user);
