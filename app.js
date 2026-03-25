@@ -346,7 +346,7 @@ async function loadSuppliers() {
         tbody.innerHTML = data.length === 0
             ? `<tr><td colspan="10" style="text-align:center;color:#888">No suppliers found.</td></tr>`
             : data.map(s => `
-            <tr data-id="${s.id}" data-status="${s.status||'active'}" data-category="${s.category||'other'}" data-name="${s.name.toLowerCase()}">
+            <tr>
                 <td><input type="checkbox"></td>
                 <td><strong>${s.name}</strong></td><td>${s.category||'—'}</td><td>${s.phone||'—'}</td>
                 <td>${fmtNum(s.total_balance||0)}</td><td>${fmtNum(s.paid_amount||0)}</td>
@@ -357,6 +357,19 @@ async function loadSuppliers() {
                     <button class="action-btn" onclick="openEditSupplierModal('${s.id}')"><i class='bx bx-edit'></i></button>
                     <button class="action-btn delete" onclick="deleteSupplier('${s.id}')"><i class='bx bx-trash'></i></button>
                 </td>
+            </tr>`).join('');
+    }
+
+    const soaBody = document.getElementById('soa-table-body');
+    if (soaBody) {
+        soaBody.innerHTML = data.map(s => `
+            <tr>
+                <td><input type="checkbox"></td>
+                <td><strong>${s.name}</strong></td>
+                <td>${fmtNum(s.paid_amount || 0)}</td>
+                <td><strong style="color:#e74c3c">${fmtNum(s.remaining || 0)}</strong></td>
+                <td>${s.due_date || '—'}</td>
+                <td><span class="status-badge ${(s.remaining||0)>5000?'pending':'approved'}">${(s.remaining||0)>5000?'High':'Normal'}</span></td>
             </tr>`).join('');
     }
 
@@ -424,7 +437,7 @@ async function loadWastageLogs() {
                 <td><input type="checkbox"></td>
                 <td>${new Date(l.created_at).toLocaleDateString()}</td>
                 <td>${l.items?.name||'Unknown'}</td>
-                <td><strong style="color:#e74c3c">${l.quantity}</strong></td>
+                <td><strong style="color:#e74c3c">${l.quantity} ${l.items?.unit||''}</strong></td>
                 <td>${l.reason||'—'}</td>
                 <td>${cachedBranches.find(b=>b.id===l.branch_id)?.name||'Main'}</td>
             </tr>`).join('');
@@ -991,27 +1004,28 @@ async function loadRecipes() {
                         <span><i class='bx bx-cube'></i> ${r.yield_pct || 100}% Yield</span>
                         <span><i class='bx bx-money'></i> Cost: ${fmtNum(r.avg_cost || 0)}</span>
                     </div>
-                    <div class="profit-margin">
-                        <span>Sale: ${fmtNum(r.base_price || 0)}</span>
-                        <span class="margin-badge">${r.margin_pct || 75}% Margin</span>
-                    </div>
                     <button class="outline-btn" onclick="viewRecipeBreakdown('${r.id}')">View Breakdown</button>
                 </div>
             </div>`).join('');
     }
 
     setKPI('kpi-recipe-total', `${recipes.length} <span class="subtitle">Approved</span>`);
+    window.cachedRecipes = recipes;
 }
 
 window.viewRecipeBreakdown = (id) => {
-    // For now, prompt or modal showing ingredients (would require recipe_items table join)
     toast('🕒 Recipe Breakdown details loading...');
 };
 
 window.openEditRecipeModal = (id) => {
-    const r = recipes.find(x => x.id === id); // Need to cache recipes
-    if (!r) return;
-    // populate modal fields...
+    const r = (window.cachedRecipes || []).find(x => x.id === id);
+    if (!r) return alert('Recipe not found in cache.');
+    
+    const nameEl = document.getElementById('recipe-name');
+    const bidEl  = document.getElementById('recipe-branch');
+    if (nameEl) nameEl.value = r.name || '';
+    if (bidEl)  bidEl.value  = r.branch_id || 'all';
+    
     openModal('recipe-modal');
 };
 
@@ -1078,7 +1092,7 @@ window.askAiAssistant = async () => {
         box.innerText = '✅ AI Analysis:\n\n' + (d.content?.map(b=>b.text||'').join('\n')||'No response.');
     } catch(e) {
         console.error('Claude AI Error:', e);
-        box.innerText=`❌ Claude API Error: ${e.message}\n\nCheck your API key in app.js line 7.`;
+        box.innerText=`❌ AI Integration Unavailable: ${e.message}\n\nNote: This tool requires a valid sk-ant-... key at line 7 and a clear network route to Anthropic's API.`;
     }
 
     const lower = q.toLowerCase();
