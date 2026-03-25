@@ -401,7 +401,15 @@
             <section id="production-section" class="page-section">
                 <div class="section-header">
                     <h2>Daily Production</h2>
-                    <button class="primary-btn" onclick="openModal('production-modal')"><i class='bx bx-plus'></i> Record Production</button>
+                    <div class="header-buttons">
+                        <div class="date-filter-bar">
+                            <i class='bx bx-calendar'></i>
+                            <input type="date" class="date-picker" id="date-production" onchange="updateDataDate(this.value)" title="Filter by date">
+                        </div>
+                        <button class="secondary-btn" onclick="exportSection('production','pdf')"><i class='bx bx-file-pdf'></i> PDF</button>
+                        <button class="secondary-btn" onclick="exportSection('production','xls')"><i class='bx bx-spreadsheet'></i> XLS</button>
+                        <button class="primary-btn" onclick="openModal('production-modal')"><i class='bx bx-plus'></i> Record Production</button>
+                    </div>
                 </div>
 
                 <div class="kpi-grid">
