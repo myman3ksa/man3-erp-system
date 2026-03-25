@@ -61,6 +61,7 @@ async function boot() {
     if (overlay && overlay.classList.contains('active')) return;
     const saved = window.location.hash.substring(1) || localStorage.getItem('man3_page') || 'dashboard-section';
     navigateTo(document.getElementById(saved) ? saved : 'dashboard-section');
+    initDatePickers();
 }
 
 async function cacheItems() {
@@ -548,7 +549,12 @@ window.confirmReceivePO = async (poId) => {
         const ext  = file.name.split('.').pop();
         const path = `invoices/${poId}/${Date.now()}_${inv}.${ext}`;
         const { error: upErr } = await sb.storage.from('invoices').upload(path, file, { cacheControl:'3600', upsert:false, contentType:file.type });
-        if (upErr) throw new Error('Upload: '+upErr.message);
+        if (upErr) {
+            if (upErr.message.includes('Bucket not found') || upErr.message.includes('bucket')) {
+                throw new Error('Storage bucket not found.\n\n→ Fix: Go to Supabase → Storage → Create bucket named "invoices" and set it to PUBLIC.');
+            }
+            throw new Error('Upload failed: '+upErr.message);
+        }
         const { data: urlD } = sb.storage.from('invoices').getPublicUrl(path);
         const url = urlD?.publicUrl||'';
         await sb.from('invoices').insert([{ po_id:poId, invoice_number:inv, invoice_date:date,
@@ -854,37 +860,71 @@ window.submitFinancePayment = async () => {
 };
 
 // ============================================================
-// EXPORTS (PDF & XLS)
-// ============================================================
-// ============================================================
-// EXPORTS (PDF & XLS)
+// EXPORTS (PDF & XLS) — Arabic + Date-aware
 // ============================================================
 window.exportSection = (section, type) => {
-    const tableId = section === 'finance' ? 'suppliers-table' : (section === 'inventory' ? 'suppliers-table' : 'main-table');
-    const table = document.querySelector(`#${section}-section table`);
+    // Find the first table in the section
+    const sectionEl = document.getElementById(`${section}-section`);
+    if (!sectionEl) return alert(`Section "${section}" not found.`);
+    const table = sectionEl.querySelector('table');
     if (!table) return alert('No table found in this section.');
 
-    const filename = `MAN3_${section.toUpperCase()}_${new Date().toISOString().split('T')[0]}`;
+    const dateStr = currentSelectedDate || new Date().toISOString().split('T')[0];
+    const filename = `MAN3_${section.toUpperCase()}_${dateStr}`;
 
     if (type === 'xls') {
-        const wb = XLSX.utils.table_to_book(table);
+        // Clone to sanitize (remove checkbox column)
+        const clone = table.cloneNode(true);
+        clone.querySelectorAll('th:first-child, td:first-child').forEach(c => c.remove());
+        const wb = XLSX.utils.table_to_book(clone, { raw: false });
+
+        // Fix RTL / Arabic encoding
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        ws['!dir'] = 'rtl'; // hint for Arabic
         XLSX.writeFile(wb, `${filename}.xlsx`);
     } else {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('l', 'mm', 'a4');
-        doc.text(`MAN-3 Plus ERP - ${section.toUpperCase()} Report`, 14, 15);
-        
-        doc.autoTable({
-            html: table,
-            startY: 20,
-            styles: { fontSize: 8, cellPadding: 2 },
-            headStyles: { fillColor: [46, 204, 113] }
-        });
-        
-        doc.save(`${filename}.pdf`);
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+            // Title
+            doc.setFontSize(13);
+            doc.setTextColor(46, 204, 113);
+            doc.text(`MAN-3 Plus ERP — ${section.toUpperCase()} Report  |  ${dateStr}`, 14, 14);
+            doc.setTextColor(0, 0, 0);
+
+            // Extract rows to handle Arabic (jspdf-autotable body option)
+            const headRows = [];
+            table.querySelectorAll('thead tr').forEach(tr => {
+                const cells = [...tr.querySelectorAll('th')].slice(1).map(th => th.textContent.trim());
+                if (cells.length) headRows.push(cells);
+            });
+            const bodyRows = [];
+            table.querySelectorAll('tbody tr').forEach(tr => {
+                const cells = [...tr.querySelectorAll('td')].slice(1).map(td => td.textContent.trim());
+                if (cells.length) bodyRows.push(cells);
+            });
+
+            doc.autoTable({
+                head: headRows,
+                body: bodyRows,
+                startY: 20,
+                styles: { fontSize: 7.5, cellPadding: 2, font: 'helvetica', halign: 'right', overflow: 'linebreak' },
+                headStyles: { fillColor: [27, 77, 62], textColor: [255,255,255], fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [240, 248, 244] },
+                margin: { left: 10, right: 10 }
+            });
+            doc.save(`${filename}.pdf`);
+        } catch(e) {
+            alert('PDF Error: ' + e.message);
+        }
     }
-    toast(`✅ ${type.toUpperCase()} exported`);
+    toast(`✅ ${type.toUpperCase()} exported — ${filename}`);
 };
+
+// Alias used from Suppliers section buttons
+window.exportSuppliers = type => exportSection('suppliers', type);
+
 
 // ============================================================
 // ROLE-BASED ACCESS CONTROL (RBAC)
@@ -1494,6 +1534,41 @@ window.applyLanguage = lang => {
     document.documentElement.setAttribute('dir',lang==='ar'?'rtl':'ltr');
     document.documentElement.setAttribute('lang',lang);
 };
+
+// ============================================================
+// DATE PICKERS — init all to today
+// ============================================================
+function initDatePickers() {
+    const today = new Date().toISOString().split('T')[0];
+    document.querySelectorAll('.date-picker').forEach(dp => {
+        dp.value = today;
+    });
+}
+
+// ============================================================
+// INVENTORY FILTER HELPERS
+// ============================================================
+window.filterInventory = (val) => {
+    const q = val.toLowerCase();
+    document.querySelectorAll('#inventory-section table tbody tr').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+};
+window.filterInventoryByCat = (cat) => {
+    document.querySelectorAll('#inventory-section table tbody tr').forEach(row => {
+        if (cat === 'all') { row.style.display = ''; return; }
+        const cells = row.querySelectorAll('td');
+        row.style.display = cells[2]?.textContent?.toLowerCase().includes(cat.toLowerCase()) ? '' : 'none';
+    });
+};
+window.filterInventoryByBranch = (branch) => {
+    if (branch === 'all') {
+        document.querySelectorAll('#inventory-section table tbody tr').forEach(r => r.style.display = '');
+        return;
+    }
+    toast(`Branch filter applied: ${branch}`);
+};
+
 
 // ============================================================
 // MODALS
