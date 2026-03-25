@@ -89,8 +89,10 @@
                         <p id="dash-date-label">Live operational overview</p>
                     </div>
                     <div class="banner-actions">
-                        <button class="export-btn-mini" onclick="exportData('pdf')"><i class='bx bx-file-pdf'></i> PDF</button>
-                        <button class="export-btn-mini" onclick="exportData('xls')"><i class='bx bx-spreadsheet'></i> XLS</button>
+                        <div class="comparison-stat">
+                            <span class="stat-trend up"><i class='bx bx-trending-up'></i> +12%</span>
+                            <span class="stat-label">vs last month</span>
+                        </div>
                     </div>
                 </div>
 
@@ -106,7 +108,7 @@
                     </div>
                     <div class="kpi-mini-card">
                         <div class="card-header"><span>Portions Produced</span><a href="#production-section" class="view-report" onclick="navigateTo('production-section')">View All →</a></div>
-                        <div class="card-body"><h2><span id="kpi-total-orders">—</span></h2><div class="mini-chart-container"><canvas id="miniChartTotalOrders"></canvas></div></div>
+                        <div class="card-body"><h2><span id="kpi-total-orders">—</span></h2><span class="mini-trend up">+8%</span><div class="mini-chart-container"><canvas id="miniChartTotalOrders"></canvas></div></div>
                     </div>
                 </div>
 
@@ -326,14 +328,22 @@
                     </div>
                 </div>
 
-                <div class="custom-panel">
                     <div class="panel-toolbar">
-                        <input type="text" placeholder="Search item..." class="search-input">
-                        <select>
-                            <option>Category: All</option>
+                        <div class="search-box">
+                            <i class='bx bx-search'></i>
+                            <input type="text" placeholder="Search inventory..." class="search-input" oninput="filterInventory(this.value)">
+                        </div>
+                        <select onchange="filterInventoryByCat(this.value)">
+                            <option value="all">Category: All</option>
                             <option>Meat</option>
                             <option>Vegetables</option>
                             <option>Dairy</option>
+                            <option>Dry Store</option>
+                        </select>
+                        <select onchange="filterInventoryByBranch(this.value)">
+                            <option value="all">Branch: All</option>
+                            <option>Main Branch</option>
+                            <option>Jeddah Branch</option>
                         </select>
                     </div>
 
@@ -425,8 +435,8 @@
                                 <th>Date</th>
                                 <th>Menu Item</th>
                                 <th>Branch</th>
-                                <th>Qty Produced</th>
-                                <th>Estimated Cost (SAR)</th>
+                                <th>Qty (Produced)</th>
+                                <th>Unit</th>
                                 <th>Wastage Logged</th>
                             </tr>
                         </thead>
