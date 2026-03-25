@@ -286,6 +286,30 @@ p, span, td { color: var(--text-muted); }
 .section-header h2 { font-size: 26px; }
 .header-buttons { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
+/* Date filter bar in section headers */
+.date-filter-bar {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--bg-card); border: 1px solid var(--border-color);
+    border-radius: 8px; padding: 4px 10px;
+    font-size: 13px; color: var(--text-muted);
+}
+.date-filter-bar i { font-size: 16px; color: var(--accent); }
+.date-picker {
+    background: transparent; border: none; outline: none;
+    color: var(--text-main); font-size: 13px; cursor: pointer;
+    width: 130px;
+}
+.date-picker::-webkit-calendar-picker-indicator { filter: invert(0.7); cursor: pointer; }
+
+/* Mini trend badge on KPI cards */
+.mini-trend { font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 10px; }
+.mini-trend.up   { background: rgba(46,204,113,.15); color: #2ecc71; }
+.mini-trend.down { background: rgba(231,76,60,.15);  color: #e74c3c; }
+.stat-trend { font-size: 13px; font-weight: 600; }
+.stat-trend.up { color: #2ecc71; }
+.stat-label    { font-size: 12px; color: rgba(255,255,255,0.6); }
+
+
 .section-footer { display: flex; gap: 12px; margin-top: 20px; }
 
 /* ============================================================
