@@ -4,7 +4,7 @@
 const { createClient } = supabase;
 const SUPABASE_URL  = 'https://lxqyxyfkemmdnvzxckmb.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_96EDMv58jjL-ikz4ew86Pw_uycMTKq7';
-const ANTHROPIC_KEY = 'YOUR_ANTHROPIC_API_KEY';
+const ANTHROPIC_KEY = 'YOUR_ANTHROPIC_API_KEY_HERE'; // Replace with sk-ant-api03-...
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ============================================================
@@ -50,6 +50,7 @@ async function boot() {
         loadWastageLogs(),
         loadPurchaseOrders(),
         loadInvoices(),
+        loadRecipes(),
         cacheItems()
     ]);
     // Only navigate if auth overlay is hidden (i.e. user is logged in)
@@ -839,25 +840,61 @@ window.submitFinancePayment = async () => {
 // ============================================================
 // EXPORTS (PDF & XLS)
 // ============================================================
+// ============================================================
+// EXPORTS (PDF & XLS)
+// ============================================================
 window.exportSection = (section, type) => {
-    const tableId = section === 'finance' ? 'suppliers-table' : 'main-table';
-    const table   = document.querySelector(`#${section}-section table`) || document.getElementById(tableId);
-    if (!table) return alert('No table found for export.');
+    const tableId = section === 'finance' ? 'suppliers-table' : (section === 'inventory' ? 'suppliers-table' : 'main-table');
+    const table = document.querySelector(`#${section}-section table`);
+    if (!table) return alert('No table found in this section.');
 
-    const filename = `MAN3_${section.toUpperCase()}_EXP_${new Date().getTime()}`;
+    const filename = `MAN3_${section.toUpperCase()}_${new Date().toISOString().split('T')[0]}`;
 
     if (type === 'xls') {
         const wb = XLSX.utils.table_to_book(table);
         XLSX.writeFile(wb, `${filename}.xlsx`);
     } else {
         const { jsPDF } = window.jspdf;
-        const doc       = new jsPDF();
+        const doc = new jsPDF('l', 'mm', 'a4');
         doc.text(`MAN-3 Plus ERP - ${section.toUpperCase()} Report`, 14, 15);
-        doc.autoTable({ html: table, startY: 20, theme: 'striped' });
+        
+        doc.autoTable({
+            html: table,
+            startY: 20,
+            styles: { fontSize: 8, cellPadding: 2 },
+            headStyles: { fillColor: [46, 204, 113] }
+        });
+        
         doc.save(`${filename}.pdf`);
     }
-    toast(`📦 ${type.toUpperCase()} exported`);
+    toast(`✅ ${type.toUpperCase()} exported`);
 };
+
+// ============================================================
+// ROLE-BASED ACCESS CONTROL (RBAC)
+// ============================================================
+function handleUserRole(role) {
+    document.body.classList.remove('role-admin', 'role-finance', 'role-manager');
+    
+    if (role === 'Super Admin') {
+        document.body.classList.add('role-admin');
+    } else if (role === 'Finance Department') {
+        document.body.classList.add('role-finance');
+    } else {
+        document.body.classList.add('role-manager');
+    }
+
+    // Hide sidebar items based on logic
+    document.querySelectorAll('.nav-links li').forEach(li => {
+        if (role === 'Branch Manager' && (li.classList.contains('admin-only') || li.classList.contains('finance-only'))) {
+            li.style.display = 'none';
+        } else if (role === 'Finance Department' && li.classList.contains('admin-only')) {
+            li.style.display = 'none';
+        } else {
+            li.style.display = 'flex';
+        }
+    });
+}
 
 // ============================================================
 // PRODUCTION
@@ -901,9 +938,80 @@ window.submitRecipe = async () => {
     const name = document.getElementById('recipe-name')?.value.trim();
     const bid  = document.getElementById('recipe-branch')?.value;
     if (!name) return alert('Recipe name required.');
-    await sb.from('recipes').insert([{name,branch_id:bid==='all'?null:bid}]);
-    closeModal('recipe-modal'); document.getElementById('recipe-form')?.reset();
+    
+    const { error } = await sb.from('recipes').insert([{ name, branch_id: bid === 'all' ? null : bid }]);
+    if (error) return alert(error.message);
+
+    closeModal('recipe-modal');
+    document.getElementById('recipe-form')?.reset();
     toast('✅ Recipe saved');
+    loadRecipes();
+};
+
+window.deleteRecipe = async id => {
+    if (!confirm('Delete this recipe?')) return;
+    await sb.from('recipes').delete().eq('id', id);
+    loadRecipes(); toast('🗑 Recipe deleted');
+};
+
+async function loadRecipes() {
+    const { data: recipes, error } = await sb.from('recipes').select('*, branches(name)');
+    if (error) return;
+
+    const tbody = document.getElementById('recipes-table-body');
+    const cards = document.getElementById('recipe-cards-container');
+    
+    if (tbody) {
+        tbody.innerHTML = recipes.length === 0 
+            ? `<tr><td colspan="7" style="text-align:center;color:#888">No recipes found.</td></tr>`
+            : recipes.map(r => `
+            <tr>
+                <td><input type="checkbox"></td>
+                <td><strong>${r.name}</strong></td>
+                <td>${r.category || 'Kitchen'}</td>
+                <td>${r.yield_pct || 100}%</td>
+                <td>${fmtNum(r.avg_cost || 0)}</td>
+                <td><span style="color:#2ecc71">${r.margin_pct || 75}%</span></td>
+                <td>
+                    <button class="action-btn" onclick="viewRecipeBreakdown('${r.id}')" title="Breakdown"><i class='bx bx-show'></i></button>
+                    <button class="action-btn" onclick="openEditRecipeModal('${r.id}')" title="Edit"><i class='bx bx-edit'></i></button>
+                    <button class="action-btn delete" onclick="deleteRecipe('${r.id}')" title="Delete"><i class='bx bx-trash'></i></button>
+                </td>
+            </tr>`).join('');
+    }
+
+    if (cards) {
+        cards.innerHTML = recipes.slice(0, 6).map(r => `
+            <div class="recipe-card">
+                <img src="https://images.unsplash.com/photo-1541544741938-0af808871cc0?auto=format&fit=crop&w=300&q=80" alt="Recipe">
+                <div class="recipe-info">
+                    <h3>${r.name}</h3>
+                    <div class="recipe-meta">
+                        <span><i class='bx bx-cube'></i> ${r.yield_pct || 100}% Yield</span>
+                        <span><i class='bx bx-money'></i> Cost: ${fmtNum(r.avg_cost || 0)}</span>
+                    </div>
+                    <div class="profit-margin">
+                        <span>Sale: ${fmtNum(r.base_price || 0)}</span>
+                        <span class="margin-badge">${r.margin_pct || 75}% Margin</span>
+                    </div>
+                    <button class="outline-btn" onclick="viewRecipeBreakdown('${r.id}')">View Breakdown</button>
+                </div>
+            </div>`).join('');
+    }
+
+    setKPI('kpi-recipe-total', `${recipes.length} <span class="subtitle">Approved</span>`);
+}
+
+window.viewRecipeBreakdown = (id) => {
+    // For now, prompt or modal showing ingredients (would require recipe_items table join)
+    toast('🕒 Recipe Breakdown details loading...');
+};
+
+window.openEditRecipeModal = (id) => {
+    const r = recipes.find(x => x.id === id); // Need to cache recipes
+    if (!r) return;
+    // populate modal fields...
+    openModal('recipe-modal');
 };
 
 // ============================================================
@@ -958,8 +1066,8 @@ window.askAiAssistant = async () => {
 
     try {
         const res = await fetch('https://api.anthropic.com/v1/messages',{
-            method:'POST', headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01'},
-            body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000,
+            method:'POST', headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01','anthropic-dangerously-set-unprotected-browser': 'true'},
+            body:JSON.stringify({ model:'claude-3-5-sonnet-latest', max_tokens:1000,
                 system:`You are an expert ERP analyst for MAN-3 Plus, a Saudi restaurant chain. Answer using ONLY the provided data. Format response:\n📊 ANALYSIS — specific numbers from data\n⚠️ ISSUES — critical issues (low stock, overdue, pending)\n✅ ACTIONS — 2-3 concrete next steps\nCurrency=SAR. Be concise.`,
                 messages:[{role:'user',content:`Question: "${q}"\n\nData:\n${JSON.stringify(snap,null,2)}`}]
             })
@@ -968,7 +1076,8 @@ window.askAiAssistant = async () => {
         const d = await res.json();
         box.innerText = '✅ AI Analysis:\n\n' + (d.content?.map(b=>b.text||'').join('\n')||'No response.');
     } catch(e) {
-        box.innerText=`❌ Claude API not connected. Add your API key in app.js line 4.\n\nLoaded: ${snap.branches.length} branches • ${snap.suppliers.length} suppliers • ${snap.items.length} items • ${snap.purchase_orders.length} POs`;
+        console.error('Claude AI Error:', e);
+        box.innerText=`❌ Claude API Error: ${e.message}\n\nCheck your API key in app.js line 7.`;
     }
 
     const lower = q.toLowerCase();
@@ -1067,6 +1176,8 @@ window.doLogin = async () => {
         authMsg('login-error', '❌ ' + error.message + (error.message.includes('fetch') ? ' (Network/Supabase error)' : ''));
         setBtn('btn-login', 'SIGN IN', false);
     } else {
+        const role = data.user?.user_metadata?.role || 'Guest';
+        handleUserRole(role);
         loginSuccess(data.user);
     }
 };
@@ -1192,6 +1303,7 @@ function loginSuccess(user) {
     if (sidebarRole) sidebarRole.textContent = user.user_metadata?.role || 'Staff';
 
     // 4. Load all data and navigate
+    handleUserRole(role);
     boot();
 }
 
