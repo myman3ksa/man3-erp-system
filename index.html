@@ -32,15 +32,15 @@
             </div>
         </div>
         <ul class="nav-links">
-            <li class="active" data-target="dashboard-section"><i class='bx bx-grid-alt'></i><span>Dashboard</span></li>
+            <li data-target="dashboard-section" class="active"><i class='bx bx-grid-alt'></i><span>Dashboard</span></li>
             <li data-target="purchasing-section"><i class='bx bx-cart-alt'></i><span>Purchasing</span></li>
             <li data-target="inventory-section"><i class='bx bx-package'></i><span>Inventory</span></li>
             <li data-target="production-section"><i class='bx bx-dish'></i><span>Production</span></li>
             <li data-target="costing-section"><i class='bx bx-line-chart'></i><span>Costing</span></li>
-            <li data-target="admin-section"><i class='bx bx-buildings'></i><span data-lang="menu_branches">Branches</span></li>
-            <li data-target="suppliers-section"><i class='bx bx-store'></i><span>Suppliers</span></li>
-            <li data-target="finance-section"><i class='bx bx-money'></i><span data-lang="menu_finance">Finance</span></li>
-            <li data-target="users-section"><i class='bx bx-user'></i><span data-lang="menu_users">Users</span></li>
+            <li data-target="admin-section" class="admin-only"><i class='bx bx-buildings'></i><span data-lang="menu_branches">Branches</span></li>
+            <li data-target="suppliers-section" class="finance-only"><i class='bx bx-store'></i><span>Suppliers</span></li>
+            <li data-target="finance-section" class="finance-only"><i class='bx bx-money'></i><span data-lang="menu_finance">Finance</span></li>
+            <li data-target="users-section" class="admin-only"><i class='bx bx-user'></i><span data-lang="menu_users">Users</span></li>
             <li data-target="wastage-section"><i class='bx bx-trash'></i><span data-lang="menu_wastage">Wastage</span></li>
             <li data-target="settings-section"><i class='bx bx-cog'></i><span data-lang="menu_settings">Settings</span></li>
             <li data-target="ai-assistant-section"><i class='bx bx-bot'></i><span>AI Assistant</span></li>
@@ -300,28 +300,28 @@
                         <div class="kpi-icon inv"><i class='bx bx-package'></i></div>
                         <div class="kpi-info">
                             <h3>Total Items</h3>
-                            <p>1,248 <span class="subtitle">SKUs</span></p>
+                            <p><span id="kpi-inv-total">0</span> <span class="subtitle">SKUs</span></p>
                         </div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-icon pending"><i class='bx bx-error-circle'></i></div>
                         <div class="kpi-info">
                             <h3>Low Stock</h3>
-                            <p>15 <span class="subtitle">Items</span></p>
+                            <p><span id="kpi-inv-lowstock">0</span> <span class="subtitle">Items</span></p>
                         </div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-icon purchases"><i class='bx bx-wallet-alt'></i></div>
                         <div class="kpi-info">
                             <h3>Total Value</h3>
-                            <p>342,000 <span class="currency">SAR</span></p>
+                            <p><span id="kpi-inv-value">0</span> <span class="currency">SAR</span></p>
                         </div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-icon prod"><i class='bx bx-category'></i></div>
                         <div class="kpi-info">
                             <h3>Categories</h3>
-                            <p>8 <span class="subtitle">Active</span></p>
+                            <p><span id="kpi-inv-cats">0</span> <span class="subtitle">Active</span></p>
                         </div>
                     </div>
                 </div>
@@ -466,64 +466,50 @@
                         <div class="kpi-icon inv"><i class='bx bx-book-content'></i></div>
                         <div class="kpi-info">
                             <h3>Total Recipes</h3>
-                            <p>145 <span class="subtitle">Approved</span></p>
+                            <p><span id="kpi-recipe-total">0</span> <span class="subtitle">Approved</span></p>
                         </div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-icon prod"><i class='bx bx-trending-up'></i></div>
                         <div class="kpi-info">
                             <h3>Avg Margin</h3>
-                            <p>68 <span class="subtitle">%</span></p>
+                            <p><span id="kpi-recipe-margin">0</span> <span class="subtitle">%</span></p>
                         </div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-icon purchases"><i class='bx bx-star'></i></div>
                         <div class="kpi-info">
                             <h3>Most Profitable</h3>
-                            <p>Shawarma <span class="subtitle">76% Margin</span></p>
-                        </div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-icon pending"><i class='bx bx-error'></i></div>
-                        <div class="kpi-info">
-                            <h3>Needs Review</h3>
-                            <p>4 <span class="subtitle">Recipes</span></p>
+                            <p><span id="kpi-recipe-best">---</span> <span class="subtitle">---</span></p>
                         </div>
                     </div>
                 </div>
 
-                <div class="costing-cards">
-                    <div class="recipe-card">
-                        <img src="https://images.unsplash.com/photo-1528735602780-2552fd46c7af?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80" alt="Shawarma">
-                        <div class="recipe-info">
-                            <h3>Chicken Shawarma Meal</h3>
-                            <div class="recipe-meta">
-                                <span><i class='bx bx-cube'></i> 4 Ingredients</span>
-                                <span><i class='bx bx-money'></i> Cost: 3.5 SAR</span>
-                            </div>
-                            <div class="profit-margin">
-                                <span>Selling Price: 15 SAR</span>
-                                <span class="margin-badge">76% Margin</span>
-                            </div>
-                            <button class="outline-btn">View Breakdown</button>
-                        </div>
+                <div class="custom-panel" style="margin-top: 20px;">
+                    <div class="panel-header" style="justify-content: space-between; display: flex; align-items: center; margin-bottom: 20px;">
+                        <h3>Menu & Recipe Inventory</h3>
+                        <button class="primary-btn" onclick="openModal('recipe-modal')"><i class='bx bx-plus-circle'></i> New Item / Recipe</button>
                     </div>
+                    <table class="styled-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox"></th>
+                                <th>Menu Item</th>
+                                <th>Category</th>
+                                <th>Yield %</th>
+                                <th>Cost (SAR)</th>
+                                <th>Margin (%)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recipes-table-body">
+                            <!-- Dynamic row insertion -->
+                        </tbody>
+                    </table>
+                </div>
 
-                    <div class="recipe-card">
-                        <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80" alt="Salad">
-                        <div class="recipe-info">
-                            <h3>Keto Chicken Salad</h3>
-                            <div class="recipe-meta">
-                                <span><i class='bx bx-cube'></i> 7 Ingredients</span>
-                                <span><i class='bx bx-money'></i> Cost: 8.2 SAR</span>
-                            </div>
-                            <div class="profit-margin">
-                                <span>Selling Price: 35 SAR</span>
-                                <span class="margin-badge">76.5% Margin</span>
-                            </div>
-                            <button class="outline-btn">View Breakdown</button>
-                        </div>
-                    </div>
+                <div class="costing-cards" id="recipe-cards-container">
+                    <!-- Dynamic cards -->
                 </div>
             </section>
 
