@@ -164,10 +164,13 @@
                 <div class="section-header">
                     <h2>Purchasing Orders</h2>
                     <div class="header-buttons">
-                        <button class="warning-btn" onclick="openModal('urgent-payment-modal')" style="background: #e67e22; color: #fff; border:none; padding: 10px 15px; border-radius:6px; cursor:pointer;">
-                            <i class='bx bx-alarm-exclamation'></i> Urgent Payment
-                        </button>
-                        <button class="secondary-btn" id="export-po-btn"><i class='bx bx-export'></i> Export P.O.</button>
+                        <div class="date-filter-bar">
+                            <i class='bx bx-calendar'></i>
+                            <input type="date" class="date-picker" id="date-purchasing" onchange="updateDataDate(this.value)" title="Filter by date">
+                        </div>
+                        <button class="secondary-btn" onclick="exportSection('purchasing','pdf')"><i class='bx bx-file-pdf'></i> PDF</button>
+                        <button class="secondary-btn" onclick="exportSection('purchasing','xls')"><i class='bx bx-spreadsheet'></i> XLS</button>
+                        <button class="warning-btn" onclick="openModal('urgent-payment-modal')" style="background:#e67e22;color:#fff;border:none;padding:10px 15px;border-radius:6px;cursor:pointer;"><i class='bx bx-alarm-exclamation'></i> Urgent</button>
                         <button class="primary-btn" onclick="openModal('po-modal')"><i class='bx bx-plus'></i> New PO</button>
                     </div>
                 </div>
@@ -291,9 +294,14 @@
                 <div class="section-header">
                     <h2>Inventory Management</h2>
                     <div class="header-buttons">
+                        <div class="date-filter-bar">
+                            <i class='bx bx-calendar'></i>
+                            <input type="date" class="date-picker" id="date-inventory" onchange="updateDataDate(this.value)" title="Filter by date">
+                        </div>
+                        <button class="secondary-btn" onclick="exportSection('inventory','pdf')"><i class='bx bx-file-pdf'></i> PDF</button>
+                        <button class="secondary-btn" onclick="exportSection('inventory','xls')"><i class='bx bx-spreadsheet'></i> XLS</button>
                         <button class="primary-btn" onclick="openModal('add-item-modal')"><i class='bx bx-plus'></i> Add Item</button>
-                        <button class="secondary-btn" onclick="openModal('stock-transfer-modal')"><i class='bx bx-transfer'></i> Stock Transfer</button>
-                        <button class="secondary-btn"><i class='bx bx-cloud-download'></i> Export</button>
+                        <button class="secondary-btn" onclick="openModal('stock-transfer-modal')"><i class='bx bx-transfer'></i> Transfer</button>
                     </div>
                 </div>
 
@@ -468,7 +476,15 @@
             <section id="costing-section" class="page-section">
                 <div class="section-header">
                     <h2>Recipe Costing Engine</h2>
-                    <button class="primary-btn" onclick="openModal('recipe-modal')"><i class='bx bx-book-add'></i> Add Recipe</button>
+                    <div class="header-buttons">
+                        <div class="date-filter-bar">
+                            <i class='bx bx-calendar'></i>
+                            <input type="date" class="date-picker" id="date-costing" onchange="updateDataDate(this.value)" title="Filter by date">
+                        </div>
+                        <button class="secondary-btn" onclick="exportSection('costing','pdf')"><i class='bx bx-file-pdf'></i> PDF</button>
+                        <button class="secondary-btn" onclick="exportSection('costing','xls')"><i class='bx bx-spreadsheet'></i> XLS</button>
+                        <button class="primary-btn" onclick="openModal('recipe-modal')"><i class='bx bx-book-add'></i> Add Recipe</button>
+                    </div>
                 </div>
 
                 <div class="kpi-grid">
@@ -621,9 +637,13 @@
                 <div class="section-header">
                     <h2>Supplier Management</h2>
                     <div class="header-buttons">
-                        <button class="primary-btn" onclick="openModal('add-supplier-modal')"><i class='bx bx-plus'></i> Add Supplier</button>
-                        <button class="secondary-btn" onclick="exportSuppliers('pdf')"><i class='bx bx-export'></i> PDF</button>
+                        <div class="date-filter-bar">
+                            <i class='bx bx-calendar'></i>
+                            <input type="date" class="date-picker" id="date-suppliers" onchange="updateDataDate(this.value)" title="Filter by date">
+                        </div>
+                        <button class="secondary-btn" onclick="exportSuppliers('pdf')"><i class='bx bx-file-pdf'></i> PDF</button>
                         <button class="secondary-btn" onclick="exportSuppliers('xls')"><i class='bx bx-spreadsheet'></i> XLS</button>
+                        <button class="primary-btn" onclick="openModal('add-supplier-modal')"><i class='bx bx-plus'></i> Add Supplier</button>
                     </div>
                 </div>
 
@@ -737,9 +757,13 @@
                 <div class="section-header">
                     <h2 data-lang="menu_finance">Finance Department</h2>
                     <div class="header-buttons">
-                        <button class="primary-btn" onclick="openModal('finance-payment-modal')" style="background: #27ae60;"><i class='bx bx-plus-circle'></i> Add Payment</button>
-                        <button class="secondary-btn" onclick="exportSection('finance', 'pdf')">PDF</button>
-                        <button class="secondary-btn" onclick="exportSection('finance', 'xls')">XLS</button>
+                        <div class="date-filter-bar">
+                            <i class='bx bx-calendar'></i>
+                            <input type="date" class="date-picker" id="date-finance" onchange="updateDataDate(this.value)" title="Filter by date">
+                        </div>
+                        <button class="secondary-btn" onclick="exportSection('finance','pdf')"><i class='bx bx-file-pdf'></i> PDF</button>
+                        <button class="secondary-btn" onclick="exportSection('finance','xls')"><i class='bx bx-spreadsheet'></i> XLS</button>
+                        <button class="primary-btn" onclick="openModal('finance-payment-modal')" style="background:#27ae60;"><i class='bx bx-plus-circle'></i> Add Payment</button>
                     </div>
                 </div>
 
