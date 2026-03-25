@@ -4,7 +4,7 @@
 const { createClient } = supabase;
 const SUPABASE_URL  = 'https://lxqyxyfkemmdnvzxckmb.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_96EDMv58jjL-ikz4ew86Pw_uycMTKq7';
-const GEMINI_API_KEY = 'YOUR_GOOGLE_GEMINI_API_KEY'; 
+const GEMINI_API_KEY = 'AIzaSyC-caL2HNiYw3P11fbBgg9cTmewkpijVs8'; 
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentSelectedDate = new Date().toISOString().split('T')[0];
