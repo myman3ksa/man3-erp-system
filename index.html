@@ -15,6 +15,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom Styles -->
     <link rel="stylesheet" href="style.css">
+    <!-- Export Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 
 <body class="dark-theme auth-active">
@@ -737,6 +741,7 @@
                 <div class="section-header">
                     <h2 data-lang="menu_finance">Finance Department</h2>
                     <div class="header-buttons">
+                        <button class="primary-btn" onclick="openModal('finance-payment-modal')" style="background: #27ae60;"><i class='bx bx-plus-circle'></i> Add Payment</button>
                         <button class="secondary-btn" onclick="exportSection('finance', 'pdf')">PDF</button>
                         <button class="secondary-btn" onclick="exportSection('finance', 'xls')">XLS</button>
                     </div>
@@ -1288,17 +1293,18 @@
                     <div class="items-list">
                         <h4>PO Items</h4>
                         <div id="po-items-container">
-                            <div class="item-row" style="grid-template-columns: 2fr 1fr 1fr 1fr 1fr 40px;">
-                                <input type="text" id="po-item-name" placeholder="Item">
-                                <input type="number" id="po-item-qty" placeholder="Qty" oninput="calculatePOTotal()">
-                                <input type="text" id="po-item-unit" placeholder="Unit" value="kg">
-                                <input type="number" id="po-item-price" placeholder="Price (No VAT)" oninput="calculatePOTotal()">
-                                <div class="vat-field">
-                                    <label style="font-size: 10px; display: block;">VAT 15%</label>
-                                    <input type="number" id="po-item-vat" readonly style="width: 70px;">
-                                </div>
+                            <div class="item-row po-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 40px; gap: 10px; margin-bottom: 10px;">
+                                <input type="text" class="po-item-name" placeholder="Item Name">
+                                <input type="number" class="po-item-qty" placeholder="Qty" oninput="calculatePOTotal()">
+                                <input type="text" class="po-item-unit" placeholder="Unit" value="kg">
+                                <input type="number" class="po-item-price" placeholder="Price" oninput="calculatePOTotal()">
+                                <input type="number" class="po-item-vat" readonly style="width: 70px;" placeholder="VAT">
+                                <button type="button" class="action-btn delete" onclick="removePoItemRow(this)"><i class='bx bx-trash'></i></button>
                             </div>
                         </div>
+                        <button type="button" class="outline-btn" style="width: 100%; margin-top: 10px;" onclick="addPoItemRow()">
+                            <i class='bx bx-plus'></i> Add Another Item
+                        </button>
                     </div>
                     <div class="form-footer-totals" style="text-align: right; margin-top: 20px; font-size: 18px;">
                         <strong>Total (inc. VAT): <span id="po-total-calc">0.00</span> SAR</strong>
@@ -1809,6 +1815,54 @@
             <div class="modal-footer">
                 <button class="secondary-btn" onclick="closeModal('urgent-payment-modal')">Cancel</button>
                 <button class="primary-btn" onclick="submitUrgentRequest()" style="background: #e67e22;">Send Priority Message</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Finance Payment -->
+    <div id="finance-payment-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Record Supplier Payment</h2>
+                <span class="close-modal" onclick="closeModal('finance-payment-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="payment-form">
+                    <div class="input-group">
+                        <label>Select Supplier</label>
+                        <select id="payment-supplier-id" onchange="updatePaymentRemaining()">
+                            <option value="">Select a supplier...</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Current Total Balance (SAR)</label>
+                            <input type="number" id="payment-total-balance" readonly style="opacity:0.7;">
+                        </div>
+                        <div class="input-group">
+                            <label>Already Paid (SAR)</label>
+                            <input type="number" id="payment-already-paid" readonly style="opacity:0.7;">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Amount to Pay (SAR) <span class="text-danger">*</span></label>
+                            <input type="number" id="payment-amount" placeholder="0.00" oninput="updatePaymentRemaining()">
+                        </div>
+                        <div class="input-group">
+                            <label>New Remaining Balance (SAR)</label>
+                            <input type="number" id="payment-new-remaining" readonly style="font-weight:bold; color:#2ecc71;">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Payment Method & Ref</label>
+                        <input type="text" id="payment-ref" placeholder="e.g. Bank Transfer #12345">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-btn" onclick="closeModal('finance-payment-modal')">Cancel</button>
+                <button class="primary-btn" id="btn-save-payment" onclick="submitFinancePayment()">Confirm Payment</button>
             </div>
         </div>
     </div>
