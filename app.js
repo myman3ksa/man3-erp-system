@@ -4,8 +4,10 @@
 const { createClient } = supabase;
 const SUPABASE_URL  = 'https://lxqyxyfkemmdnvzxckmb.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_96EDMv58jjL-ikz4ew86Pw_uycMTKq7';
-const ANTHROPIC_KEY = 'YOUR_ANTHROPIC_API_KEY_HERE'; // Replace with sk-ant-api03-...
+const GEMINI_API_KEY = 'YOUR_GOOGLE_GEMINI_API_KEY'; 
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentSelectedDate = new Date().toISOString().split('T')[0];
 
 // ============================================================
 // GLOBAL CACHE
@@ -1080,16 +1082,20 @@ window.askAiAssistant = async () => {
     box.innerText=`🤖 Analyzing ${snap.branches.length} branches, ${snap.items.length} items, ${snap.purchase_orders.length} POs...`;
 
     try {
-        const res = await fetch('https://api.anthropic.com/v1/messages',{
-            method:'POST', headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01','anthropic-dangerously-set-unprotected-browser': 'true'},
-            body:JSON.stringify({ model:'claude-3-5-sonnet-latest', max_tokens:1000,
-                system:`You are an expert ERP analyst for MAN-3 Plus, a Saudi restaurant chain. Answer using ONLY the provided data. Format response:\n📊 ANALYSIS — specific numbers from data\n⚠️ ISSUES — critical issues (low stock, overdue, pending)\n✅ ACTIONS — 2-3 concrete next steps\nCurrency=SAR. Be concise.`,
-                messages:[{role:'user',content:`Question: "${q}"\n\nData:\n${JSON.stringify(snap,null,2)}`}]
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,{
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
+                contents: [{
+                    parts: [{
+                        text: `You are an expert ERP analyst for MAN-3 Plus. Question: "${q}"\n\nData Context:\n${JSON.stringify(snap,null,2)}\n\nFormat: 📊 ANALYSIS, ⚠️ ISSUES, ✅ ACTIONS. Currency=SAR. Be concise and professional.`
+                    }]
+                }]
             })
         });
-        if (!res.ok) throw new Error(`API ${res.status}`);
+        if (!res.ok) throw new Error(`Google API ${res.status}`);
         const d = await res.json();
-        box.innerText = '✅ AI Analysis:\n\n' + (d.content?.map(b=>b.text||'').join('\n')||'No response.');
+        const aiText = d.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from AI.';
+        box.innerText = '✅ AI Analysis (Gemini):\n\n' + aiText;
     } catch(e) {
         console.error('Claude AI Error:', e);
         box.innerText=`❌ AI Integration Unavailable: ${e.message}\n\nNote: This tool requires a valid sk-ant-... key at line 7 and a clear network route to Anthropic's API.`;
