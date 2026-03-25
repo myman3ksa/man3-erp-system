@@ -32,6 +32,7 @@ function navigateTo(pageId) {
     history.replaceState(null, '', '#' + pageId);
     localStorage.setItem('man3_page', pageId);
     if (pageId === 'dashboard-section') loadDashboard();
+    if (pageId === 'costing-section')   loadRecipes();
 }
 
 window.addEventListener('hashchange', () => {
@@ -1495,9 +1496,7 @@ window.closeModal = id => {
 // ============================================================
 // HELPERS
 // ============================================================
-window.exportData      = f => alert(`Exporting as ${f.toUpperCase()}...`);
-window.exportSection   = (s,f) => alert(`Exporting ${s} as ${f.toUpperCase()}...`);
-window.exportSuppliers = f => alert(`Exporting as ${f.toUpperCase()}...`);
+window.exportData = f => exportSection('dashboard', f);
 
 window.toggleAllCheckboxes = cb => {
     cb.closest('table')?.querySelectorAll('tbody input[type="checkbox"]')
