@@ -1170,23 +1170,27 @@ window.askAiAssistant = async () => {
     box.innerText=`🤖 Analyzing ${snap.branches.length} branches, ${snap.items.length} items, ${snap.purchase_orders.length} POs...`;
 
     try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,{
+        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+        const res = await fetch(url,{
             method:'POST', headers:{'Content-Type':'application/json'},
             body:JSON.stringify({
                 contents: [{
                     parts: [{
-                        text: `You are an expert ERP analyst for MAN-3 Plus. Question: "${q}"\n\nData Context:\n${JSON.stringify(snap,null,2)}\n\nFormat: 📊 ANALYSIS, ⚠️ ISSUES, ✅ ACTIONS. Currency=SAR. Be concise and professional.`
+                        text: `You are an expert ERP analyst for MAN-3 Plus. Question: "${q}"\n\nData Context:\n${JSON.stringify(snap)}\n\nFormat: 📊 ANALYSIS, ⚠️ ISSUES, ✅ ACTIONS. Currency=SAR. Be concise and professional.`
                     }]
                 }]
             })
         });
-        if (!res.ok) throw new Error(`Google API ${res.status}`);
+        if (!res.ok) {
+            const errD = await res.json().catch(()=>({}));
+            throw new Error(`Google API ${res.status}: ${errD.error?.message || 'Not Found'}`);
+        }
         const d = await res.json();
         const aiText = d.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from AI.';
-        box.innerText = '✅ AI Analysis (Gemini):\n\n' + aiText;
+        box.innerText = '✅ AI Analysis (Gemini Flash):\n\n' + aiText;
     } catch(e) {
-        console.error('Claude AI Error:', e);
-        box.innerText=`❌ AI Integration Unavailable: ${e.message}\n\nNote: This tool requires a valid sk-ant-... key at line 7 and a clear network route to Anthropic's API.`;
+        console.error('Gemini AI Error:', e);
+        box.innerText=`❌ AI Integration Unavailable: ${e.message}\n\nNote: Please verify your Google Gemini API key at line 7 and ensure it has access to the Generative Language API.`;
     }
 
     const lower = q.toLowerCase();
