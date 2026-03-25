@@ -37,6 +37,23 @@ function navigateTo(pageId) {
     if (pageId === 'costing-section')   loadRecipes();
 }
 
+window.updateDataDate = (date) => {
+    currentSelectedDate = date;
+    // Set all date pickers in UI to match
+    document.querySelectorAll('.date-picker').forEach(dp => dp.value = date);
+    // Refresh all relevant data
+    Promise.all([
+        loadDashboard(),
+        loadPurchaseOrders(),
+        loadWastageLogs(),
+        loadProductionLogs(),
+        loadInvoices(),
+        loadInventoryItems()
+    ]).then(() => {
+        toast(`Viewing records for: ${date}`);
+    });
+};
+
 window.addEventListener('hashchange', () => {
     const h = window.location.hash.substring(1);
     if (h) navigateTo(h);
@@ -104,6 +121,10 @@ async function loadDashboard() {
 
     // ── KPI Calculations ─────────────────────────────────────
     const totalPOs      = P.length;
+    const dailyPOs      = P.filter(p => (p.created_at||'').startsWith(currentSelectedDate));
+    const dailyProduced = PR.filter(p => (p.created_at||'').startsWith(currentSelectedDate)).reduce((s,p)=>s+(parseInt(p.portions_produced)||0),0);
+    const dailySpend    = dailyPOs.reduce((s,p)=>s+(parseFloat(p.total_amount)||0),0);
+
     const pendingPOs    = P.filter(p => p.status === 'pending').length;
     const approvedPOs   = P.filter(p => p.status === 'approved').length;
     const receivedPOs   = P.filter(p => p.status === 'received').length;
@@ -132,10 +153,11 @@ async function loadDashboard() {
 
     // ── Write KPIs ────────────────────────────────────────────
 
-    // Top mini cards (existing)
-    setKPI('kpi-po-count',       totalPOs);
-    setKPI('kpi-branch-orders',  'SAR ' + fmtNum(thisMonthSpend));
-    setKPI('kpi-total-orders',   totalProduced || totalPOs);
+    // Top mini cards (daily vs total)
+    setKPI('kpi-po-count',       dailyPOs.length || totalPOs);
+    setKPI('kpi-branch-orders',  'SAR ' + fmtNum(dailySpend || thisMonthSpend));
+    setKPI('dash-date-label',    `Viewing report for: <strong>${currentSelectedDate}</strong>`);
+    setKPI('kpi-total-orders',   dailyProduced || totalProduced || 0);
 
     // Dashboard KPI grid (12 cards)
     setKPI('dash-kpi-1',  `<div class="dk-icon" style="background:rgba(243,156,18,.15)"><i class='bx bx-cart' style="color:#f39c12"></i></div><div class="dk-info"><span class="dk-val">${totalPOs}</span><span class="dk-label">Total POs</span><span class="dk-sub ${pendingPOs>0?'warn':''}">${pendingPOs} pending</span></div>`);
@@ -430,12 +452,13 @@ async function loadInventoryItems() {
 // LOAD WASTAGE
 // ============================================================
 async function loadWastageLogs() {
-    const { data, error } = await sb.from('wastage_logs').select('*, items(name)').order('created_at', { ascending: false });
+    const { data: raw, error } = await sb.from('wastage_logs').select('*, items(name)').order('created_at', { ascending: false });
     if (error) return;
+    const data = raw.filter(l => (l.created_at||'').startsWith(currentSelectedDate));
     const tbody = document.getElementById('wastage-table-body');
     if (tbody) {
         tbody.innerHTML = !data||data.length===0
-            ? `<tr><td colspan="6" style="text-align:center;color:#888">No wastage logs.</td></tr>`
+            ? `<tr><td colspan="6" style="text-align:center;color:#888">No wastage logs for this date.</td></tr>`
             : data.map(l=>`<tr>
                 <td><input type="checkbox"></td>
                 <td>${new Date(l.created_at).toLocaleDateString()}</td>
@@ -454,8 +477,9 @@ async function loadWastageLogs() {
 async function loadPurchaseOrders(filter='all') {
     let q = sb.from('purchase_orders').select('*, branches(name), suppliers(name)');
     if (filter!=='all') q = q.eq('status', filter);
-    const { data, error } = await q.order('created_at', { ascending: false });
+    const { data: raw, error } = await q.order('created_at', { ascending: false });
     if (error) return;
+    const data = raw.filter(p => (p.created_at||'').startsWith(currentSelectedDate));
 
     const tbody = document.querySelector('#purchasing-section table tbody');
     if (tbody) {
@@ -494,9 +518,11 @@ async function loadPurchaseOrders(filter='all') {
 // LOAD INVOICES
 // ============================================================
 async function loadInvoices() {
-    const { data } = await sb.from('invoices')
+    const { data: raw, error } = await sb.from('invoices')
         .select('*, purchase_orders(po_number), suppliers(name), branches(name)')
         .order('created_at', { ascending: false });
+    if (error) return;
+    const data = raw.filter(i => (i.created_at||'').startsWith(currentSelectedDate));
     renderInvoiceTable(data||[]);
 }
 
@@ -901,6 +927,8 @@ window.exportSection = (section, type) => {
             });
             const bodyRows = [];
             table.querySelectorAll('tbody tr').forEach(tr => {
+                // EXCLUDE hidden rows (filtered out by date/search)
+                if (tr.style.display === 'none') return;
                 const cells = [...tr.querySelectorAll('td')].slice(1).map(td => td.textContent.trim());
                 if (cells.length) bodyRows.push(cells);
             });
@@ -978,7 +1006,27 @@ window.submitProduction = async () => {
     closeModal('production-modal');
     document.getElementById('production-form')?.reset();
     toast('✅ Production recorded');
+    loadProductionLogs();
 };
+
+async function loadProductionLogs() {
+    const { data: raw, error } = await sb.from('production_logs').select('*, branches(name)').order('created_at', { ascending: false });
+    if (error) return;
+    const data = raw.filter(l => (l.created_at||'').startsWith(currentSelectedDate));
+    const tbody = document.getElementById('production-table-body');
+    if (tbody) {
+        tbody.innerHTML = !data||data.length===0
+            ? `<tr><td colspan="5" style="text-align:center;color:#888">No production recorded for this date.</td></tr>`
+            : data.map(l=>`<tr>
+                <td><input type="checkbox"></td>
+                <td>${new Date(l.created_at).toLocaleDateString()}</td>
+                <td><strong>${l.menu_item}</strong></td>
+                <td><span style="color:#2ecc71;font-weight:600">${l.portions_produced} Portions</span></td>
+                <td>${l.branches?.name||'Main'}</td>
+            </tr>`).join('');
+    }
+}
+
 
 // ============================================================
 // RECIPES
